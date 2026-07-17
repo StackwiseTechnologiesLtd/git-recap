@@ -6,21 +6,58 @@
 
 Next.js + Tailwind marketing site for [git-recap](https://github.com/StackwiseTechnologiesLtd/git-recap).
 
-Brand assets live in [`docs/logo.svg`](../docs/logo.svg) (canonical) and are mirrored to [`public/logo.svg`](./public/logo.svg) for the Next.js app.
+## Stack
 
-## Develop
+* Next.js (App Router)
+* Tailwind CSS v4
+* TypeScript
+* Node built-in test runner (`node --test`)
+
+## Brand
+
+| Token | Value |
+|-------|--------|
+| Background | `#ffffff` |
+| Text | `#0a0a0a` |
+| Primary | `#541111` |
+| Terminal surface | `#0d0d0d` |
+
+Canonical logo: [`docs/logo.svg`](../docs/logo.svg)  
+App copy: [`public/logo.svg`](./public/logo.svg)
 
 ```bash
-cd web
-npm install
-npm run dev
+# After editing the logo
+cp ../docs/logo.svg ./public/logo.svg
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-## Build
+## Scripts
 
 ```bash
+npm install
+npm run dev      # http://localhost:3000
+npm run lint
+npm test         # smoke tests in tests/
 npm run build
 npm start
 ```
+
+## Project map
+
+```text
+web/
+├── public/logo.svg
+├── src/app/           # layout, page, globals
+├── src/components/    # header, terminal, logo, reveal, copy
+└── tests/smoke.test.mjs
+```
+
+## UI notes
+
+* Floating glass navbar (`SiteHeader`)
+* Dark terminal showcases (`TerminalWindow`, `CopyCommand`)
+* Scroll reveal (`Reveal`) and animated logo (`AnimatedLogo`)
+* Respect `prefers-reduced-motion`
+
+## Contributing
+
+See the repo root [CONTRIBUTING.md](../CONTRIBUTING.md) and [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md).

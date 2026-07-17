@@ -12,6 +12,14 @@
   It reads only from local <code>.git</code> state on disk. No SSH keys, no network, no remote APIs.
 </p>
 
+<p align="center">
+  <a href="#installation">Install</a> ·
+  <a href="#usage">Usage</a> ·
+  <a href="#development">Development</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href="https://github.com/StackwiseTechnologiesLtd/homebrew-tools">Homebrew tap</a>
+</p>
+
 ---
 
 ## Features
@@ -130,6 +138,67 @@ git config --global user.name "Your Name"
 
 ---
 
+## Project structure
+
+```text
+git-recap/
+├── bin/git-recap          # CLI executable (Bash)
+├── tests/cli-smoke.sh     # CLI smoke tests
+├── docs/logo.svg          # Brand asset (canonical)
+├── git-recap.rb           # Homebrew formula reference copy
+├── web/                   # Landing site (Next.js + Tailwind)
+├── .github/workflows/ci.yml
+├── CONTRIBUTING.md
+└── README.md
+```
+
+---
+
+## Development
+
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for a full local workflow. Quick start:
+
+### CLI
+
+```bash
+chmod +x bin/git-recap tests/cli-smoke.sh
+bash -n bin/git-recap
+./tests/cli-smoke.sh
+./bin/git-recap --help
+```
+
+### Landing site
+
+```bash
+cd web
+npm install
+npm run dev      # http://localhost:3000
+npm run lint
+npm test
+npm run build
+```
+
+### Continuous integration
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on pushes and pull requests to `main`:
+
+* CLI: `bash -n`, ShellCheck, smoke tests
+* Web: `npm ci` → lint → tests → build
+
+---
+
+## Website
+
+The marketing site lives in [`web/`](web/). Brand colors:
+
+* Background: white
+* Text: black
+* Primary: `#541111` (matches the logo)
+
+Canonical logo: [`docs/logo.svg`](docs/logo.svg) (mirrored to `web/public/logo.svg`).
+
+---
+
 ## Maintaining the Homebrew formula
 
 The install formula lives in [`homebrew-tools`](https://github.com/StackwiseTechnologiesLtd/homebrew-tools) as `Formula/git-recap.rb`. A copy is also kept in this repo as `git-recap.rb` for reference.
@@ -146,6 +215,12 @@ curl -sL https://github.com/StackwiseTechnologiesLtd/git-recap/archive/refs/tags
 
 4. Update `url` + `sha256` in the tap formula and push `homebrew-tools`
 5. Users upgrade with `brew upgrade git-recap`
+
+---
+
+## Contributing
+
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
 ---
 
