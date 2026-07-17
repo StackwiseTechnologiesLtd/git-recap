@@ -3,12 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const links = [
   { href: "/#features", label: "features" },
   { href: "/#install", label: "install" },
   { href: "/#help", label: "help" },
   { href: "/docs", label: "docs" },
+  { href: "/releases", label: "releases" },
 ];
 
 export function SiteHeader() {
@@ -33,7 +35,7 @@ export function SiteHeader() {
               </span>
             </Link>
 
-            <nav className="hidden items-center gap-7 text-sm text-muted md:flex">
+            <nav className="hidden items-center gap-5 text-sm text-muted lg:flex">
               {links.map((link) => (
                 <Link
                   key={link.href}
@@ -44,6 +46,7 @@ export function SiteHeader() {
                 </Link>
               ))}
               <span className="h-4 w-px bg-line-strong" aria-hidden />
+              <ThemeToggle />
               <a
                 href="https://github.com/StackwiseTechnologiesLtd/git-recap"
                 target="_blank"
@@ -55,19 +58,22 @@ export function SiteHeader() {
               </a>
             </nav>
 
-            <button
-              type="button"
-              className="rounded-lg border border-line-strong px-3 py-1.5 text-sm text-muted transition-colors hover:text-fg md:hidden"
-              onClick={() => setOpen((v) => !v)}
-              aria-expanded={open}
-              aria-label="Toggle menu"
-            >
-              Menu
-            </button>
+            <div className="flex items-center gap-2 lg:hidden">
+              <ThemeToggle />
+              <button
+                type="button"
+                className="rounded-lg border border-line-strong px-3 py-1.5 text-sm text-muted transition-colors hover:text-fg"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+                aria-label="Toggle menu"
+              >
+                Menu
+              </button>
+            </div>
           </div>
 
           {open ? (
-            <nav className="border-t border-line pb-4 pt-2 md:hidden">
+            <nav className="border-t border-line pb-4 pt-2 lg:hidden">
               <div className="flex flex-col gap-3 text-sm text-muted">
                 {links.map((link) => (
                   <Link

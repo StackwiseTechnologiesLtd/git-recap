@@ -9,8 +9,12 @@
   --faint: #8b8b8b;
   --accent: #541111;
   --accent-soft: rgba(84, 17, 17, 0.06);
+  --accent-fill: #541111;
+  --accent-fill-hover: #6a1717;
   --line: rgba(10, 10, 10, 0.08);
   --line-strong: rgba(10, 10, 10, 0.12);
+  --grid-line: rgba(10, 10, 10, 0.035);
+  --panel-hover-border: rgba(10, 10, 10, 0.18);
 
   /* Terminal (VS Code / Warp inspired) */
   --term-bg: #0d0d0d;
@@ -31,6 +35,32 @@
   --cyan: #1f5f73;
 }
 
+html.dark {
+  --bg: #0c0c0c;
+  --bg-elevated: #141414;
+  --bg-panel: #121212;
+  --fg: #f2f2f2;
+  --muted: #a3a3a3;
+  --faint: #737373;
+  --accent: #d07070;
+  --accent-soft: rgba(208, 112, 112, 0.14);
+  --accent-fill: #541111;
+  --accent-fill-hover: #6a1717;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --grid-line: rgba(255, 255, 255, 0.04);
+  --panel-hover-border: rgba(255, 255, 255, 0.22);
+
+  --term-bg: #080808;
+  --term-elevated: #121212;
+  --term-border: rgba(255, 255, 255, 0.1);
+
+  --green: #5dcea0;
+  --yellow: #e0b35a;
+  --magenta: #d18ab3;
+  --cyan: #6eb8d4;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-bg-elevated: var(--bg-elevated);
@@ -40,6 +70,8 @@
   --color-faint: var(--faint);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-fill: var(--accent-fill);
+  --color-accent-fill-hover: var(--accent-fill-hover);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-term-bg: var(--term-bg);
@@ -72,7 +104,7 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--accent) 22%, white);
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
   color: var(--fg);
 }
 
@@ -246,15 +278,15 @@ body {
   transition-delay: 0.24s;
 }
 
-/* Clean white canvas — no accent washes */
+/* Page canvas — light / dark */
 .bg-atmosphere {
-  background: #ffffff;
+  background: var(--bg);
 }
 
 .grid-fade {
   background-image:
-    linear-gradient(to right, rgba(10, 10, 10, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(10, 10, 10, 0.035) 1px, transparent 1px);
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 56px 56px;
   mask-image: radial-gradient(ellipse 70% 55% at 50% 12%, black, transparent 75%);
 }
@@ -275,5 +307,5 @@ body {
 
 .panel-hover:hover {
   transform: translateY(-2px);
-  border-color: rgba(10, 10, 10, 0.18);
+  border-color: var(--panel-hover-border);
 }

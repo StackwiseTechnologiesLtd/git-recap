@@ -23,6 +23,22 @@ test("docs page covers usage and install", () => {
   assert.match(page, /--summary-only/);
 });
 
+test("releases page lists version history", () => {
+  const page = readFileSync(join(root, "src/app/releases/page.tsx"), "utf8");
+  const data = readFileSync(join(root, "src/data/releases.ts"), "utf8");
+  assert.match(page, /Releases/);
+  assert.match(data, /v0\.1\.0/);
+  assert.match(data, /v0\.1\.1/);
+});
+
+test("favicon is configured", () => {
+  const layout = readFileSync(join(root, "src/app/layout.tsx"), "utf8");
+  assert.match(layout, /favicon\.svg/);
+  assert.ok(
+    readFileSync(join(root, "public/favicon.svg"), "utf8").includes("#541111"),
+  );
+});
+
 test("package scripts expose lint and build", () => {
   const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
   assert.equal(typeof pkg.scripts.lint, "string");

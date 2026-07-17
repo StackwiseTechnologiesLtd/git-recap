@@ -32,7 +32,7 @@ export function CopyCommand({ command, className = "" }: CopyCommandProps) {
         type="button"
         onClick={handleCopy}
         aria-label={copied ? "Copied" : "Copy install command"}
-        className="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium tracking-wide text-white transition-colors hover:bg-[#6a1717] sm:right-2.5 sm:px-3.5 sm:text-sm"
+        className="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg bg-accent-fill px-3 py-1.5 text-xs font-medium tracking-wide text-white transition-colors hover:bg-accent-fill-hover sm:right-2.5 sm:px-3.5 sm:text-sm"
       >
         {copied ? "Copied" : "Copy"}
       </button>

@@ -1,9 +1,9 @@
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 import { CopyCommand } from "@/components/CopyCommand";
 import { Reveal } from "@/components/Reveal";
+import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TerminalWindow } from "@/components/TerminalWindow";
-import Image from "next/image";
 import Link from "next/link";
 
 const BREW_INSTALL =
@@ -92,7 +92,7 @@ export default function Home() {
       <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
       <SiteHeader />
 
-      <main className="relative">
+      <main className="relative pb-28 sm:pb-32">
         <section className="mx-auto max-w-6xl px-5 pb-16 pt-28 sm:px-8 sm:pb-24 sm:pt-32">
           <div className="mx-auto max-w-3xl text-center">
             <div className="animate-rise flex flex-col items-center gap-4">
@@ -120,7 +120,7 @@ export default function Home() {
             <div className="animate-rise-delay-2 mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
                 href="#install"
-                className="inline-flex h-12 items-center justify-center rounded-xl bg-accent px-6 text-sm font-semibold text-white transition hover:bg-[#6a1717] active:scale-[0.98]"
+                className="inline-flex h-12 items-center justify-center rounded-xl bg-accent-fill px-6 text-sm font-semibold text-white transition hover:bg-accent-fill-hover active:scale-[0.98]"
               >
                 Install with Homebrew
               </a>
@@ -384,53 +384,7 @@ ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
         </section>
       </main>
 
-      <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <p className="flex items-center gap-2">
-            <Image
-              src="/logo.svg"
-              alt=""
-              width={18}
-              height={17}
-              className="h-4 w-auto"
-            />
-            <span>© {new Date().getFullYear()} git-recap</span>
-          </p>
-          <div className="flex flex-wrap gap-5">
-            <Link href="/" className="transition-colors hover:text-accent">
-              Home
-            </Link>
-            <Link href="/docs" className="transition-colors hover:text-accent">
-              Docs
-            </Link>
-            <a
-              href="https://github.com/StackwiseTechnologiesLtd/git-recap"
-              className="transition-colors hover:text-accent"
-              target="_blank"
-              rel="noreferrer"
-            >
-              GitHub
-            </a>
-            <a
-              href="https://github.com/StackwiseTechnologiesLtd/git-recap/releases"
-              className="transition-colors hover:text-accent"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Changelog
-            </a>
-            <a
-              href="https://github.com/StackwiseTechnologiesLtd/homebrew-tools"
-              className="transition-colors hover:text-accent"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Homebrew tap
-            </a>
-          </div>
-          <p className="text-faint">MIT licensed · Stackwise Technologies</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
