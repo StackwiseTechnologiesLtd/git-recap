@@ -25,6 +25,7 @@ It reads only from local `.git` state on disk. No SSH keys, no network, no remot
 
 ```bash
 brew tap StackwiseTechnologiesLtd/tools
+brew trust StackwiseTechnologiesLtd/tools   # required by modern Homebrew
 brew install git-recap
 ```
 
