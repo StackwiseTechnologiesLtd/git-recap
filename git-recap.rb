@@ -14,7 +14,7 @@ class GitRecap < Formula
   sha256 "8cdd45191091cc80395cff3fb730bd55527d816f12c7dbffbc33c9a16318eba5"
   license "MIT"
 
-  depends_on "git"
+  uses_from_macos "git"
 
   def install
     bin.install "bin/git-recap"
