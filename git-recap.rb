@@ -11,7 +11,7 @@ class GitRecap < Formula
   desc "Aggregate local Git commit messages for daily standups"
   homepage "https://github.com/StackwiseTechnologiesLtd/git-recap"
   url "https://github.com/StackwiseTechnologiesLtd/git-recap/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "REPLACE_AFTER_RELEASE"
+  sha256 "8cdd45191091cc80395cff3fb730bd55527d816f12c7dbffbc33c9a16318eba5"
   license "MIT"
 
   depends_on "git"
