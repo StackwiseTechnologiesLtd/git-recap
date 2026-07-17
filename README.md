@@ -1,8 +1,16 @@
-# git-recap
+<p align="center">
+  <img src="docs/logo.svg" alt="git-recap logo" width="96" height="92" />
+</p>
 
-`git-recap` is a lightweight, zero-dependency CLI that aggregates your local Git commit messages over a timeframe so you can prepare for daily standups in seconds.
+<h1 align="center">git-recap</h1>
 
-It reads only from local `.git` state on disk. No SSH keys, no network, no remote APIs.
+<p align="center">
+  A lightweight, zero-dependency CLI that aggregates your local Git commit messages over a timeframe so you can prepare for daily standups in seconds.
+</p>
+
+<p align="center">
+  It reads only from local <code>.git</code> state on disk. No SSH keys, no network, no remote APIs.
+</p>
 
 ---
 
