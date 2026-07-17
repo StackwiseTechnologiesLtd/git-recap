@@ -15,6 +15,7 @@
 <p align="center">
   <a href="#installation">Install</a> ·
   <a href="#usage">Usage</a> ·
+  <a href="CHANGELOG.md">Changelog</a> ·
   <a href="#development">Development</a> ·
   <a href="CONTRIBUTING.md">Contributing</a> ·
   <a href="https://github.com/StackwiseTechnologiesLtd/homebrew-tools">Homebrew tap</a>
@@ -196,6 +197,8 @@ The marketing site lives in [`web/`](web/). Brand colors:
 * Primary: `#541111` (matches the logo)
 
 Canonical logo: [`docs/logo.svg`](docs/logo.svg) (mirrored to `web/public/logo.svg`).
+
+Release notes: [`CHANGELOG.md`](CHANGELOG.md).
 
 ---
 
