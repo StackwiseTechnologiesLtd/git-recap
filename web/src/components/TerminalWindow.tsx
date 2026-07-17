@@ -1,15 +1,21 @@
-type Line =
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+export type TerminalLine =
   | { kind: "dim"; text: string }
   | { kind: "title"; text: string }
   | { kind: "cat"; text: string; tone?: "green" | "yellow" | "magenta" | "cyan" }
   | { kind: "bullet"; text: string; hash?: string };
 
 type TerminalWindowProps = {
+  command: string;
+  lines: TerminalLine[];
   title?: string;
-  lines: Line[];
   caption?: string;
   className?: string;
-  animateLines?: boolean;
+  /** Restart the demo after it finishes (hero). */
+  loop?: boolean;
 };
 
 const toneClass = {
@@ -19,15 +25,116 @@ const toneClass = {
   cyan: "text-term-cyan",
 } as const;
 
+function prefersReducedMotion() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 export function TerminalWindow({
-  title = "git-recap",
+  command,
   lines,
+  title = "git-recap",
   caption,
   className = "",
-  animateLines = false,
+  loop = false,
 }: TerminalWindowProps) {
+  const rootRef = useRef<HTMLElement>(null);
+  const [active, setActive] = useState(false);
+  const [typed, setTyped] = useState("");
+  const [visibleCount, setVisibleCount] = useState(0);
+  const [phase, setPhase] = useState<"idle" | "typing" | "output" | "done">(
+    "idle",
+  );
+
+  useEffect(() => {
+    const node = rootRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setActive(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!active) return;
+
+    let cancelled = false;
+    const timers: number[] = [];
+    const output = lines;
+    const reduced = prefersReducedMotion();
+
+    function finishImmediate() {
+      if (cancelled) return;
+      setTyped(command);
+      setVisibleCount(output.length);
+      setPhase("done");
+    }
+
+    function run() {
+      if (reduced) {
+        finishImmediate();
+        return;
+      }
+
+      setTyped("");
+      setVisibleCount(0);
+      setPhase("typing");
+
+      let i = 0;
+      const typeNext = () => {
+        if (cancelled) return;
+        if (i <= command.length) {
+          setTyped(command.slice(0, i));
+          i += 1;
+          timers.push(window.setTimeout(typeNext, 28 + Math.random() * 22));
+          return;
+        }
+        setPhase("output");
+        let line = 0;
+        const revealNext = () => {
+          if (cancelled) return;
+          if (line < output.length) {
+            line += 1;
+            setVisibleCount(line);
+            timers.push(window.setTimeout(revealNext, 70));
+            return;
+          }
+          setPhase("done");
+          if (loop) {
+            timers.push(
+              window.setTimeout(() => {
+                if (!cancelled) run();
+              }, 4200),
+            );
+          }
+        };
+        timers.push(window.setTimeout(revealNext, 280));
+      };
+
+      timers.push(window.setTimeout(typeNext, 320));
+    }
+
+    timers.push(window.setTimeout(run, 0));
+
+    return () => {
+      cancelled = true;
+      timers.forEach((id) => window.clearTimeout(id));
+    };
+  }, [active, command, loop, lines]);
+
+  const showCaret = phase === "typing" || phase === "idle";
+  const showEndCaret = phase === "done" || phase === "output";
+
   return (
-    <figure className={className}>
+    <figure ref={rootRef} className={className}>
       <div className="panel-hover overflow-hidden rounded-2xl border border-term-border bg-term-bg">
         <div className="flex items-center gap-2 border-b border-term-border bg-term-elevated px-4 py-3">
           <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
@@ -35,24 +142,28 @@ export function TerminalWindow({
           <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
           <span className="ml-2 font-mono text-xs text-term-faint">{title}</span>
         </div>
-        <pre className="min-h-[220px] overflow-x-auto px-4 py-4 font-mono text-[12px] leading-6 text-term-fg sm:min-h-[260px] sm:px-5 sm:text-[13px]">
-          {lines.map((line, index) => {
-            const lineStyle = animateLines
-              ? {
-                  animation: `rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) ${0.05 * index}s both`,
-                }
-              : undefined;
+        <pre className="min-h-[240px] overflow-x-auto px-4 py-4 font-mono text-[12px] leading-6 text-term-fg sm:min-h-[280px] sm:px-5 sm:text-[13px]">
+          <div className="text-term-fg">
+            <span className="text-term-prompt select-none">$ </span>
+            <span>{typed}</span>
+            {showCaret ? (
+              <span className="animate-caret text-term-green">▌</span>
+            ) : null}
+          </div>
 
+          {visibleCount > 0 ? <div className="h-3" /> : null}
+
+          {lines.slice(0, visibleCount).map((line, index) => {
             if (line.kind === "dim") {
               return (
-                <div key={index} className="text-term-faint" style={lineStyle}>
+                <div key={index} className="text-term-faint">
                   {line.text}
                 </div>
               );
             }
             if (line.kind === "title") {
               return (
-                <div key={index} className="font-medium text-term-cyan" style={lineStyle}>
+                <div key={index} className="font-medium text-term-cyan">
                   {line.text}
                 </div>
               );
@@ -62,14 +173,13 @@ export function TerminalWindow({
                 <div
                   key={index}
                   className={`mt-2 font-medium ${toneClass[line.tone ?? "green"]}`}
-                  style={lineStyle}
                 >
                   {line.text}
                 </div>
               );
             }
             return (
-              <div key={index} className="pl-3 text-term-fg/95" style={lineStyle}>
+              <div key={index} className="pl-3 text-term-fg/95">
                 <span className="text-term-prompt">• </span>
                 {line.text}
                 {line.hash ? (
@@ -78,9 +188,11 @@ export function TerminalWindow({
               </div>
             );
           })}
-          {animateLines ? (
-            <div className="mt-2 pl-1 text-term-green">
-              <span className="animate-caret">▌</span>
+
+          {showEndCaret && visibleCount === lines.length ? (
+            <div className="mt-3 text-term-fg">
+              <span className="text-term-prompt select-none">$ </span>
+              <span className="animate-caret text-term-green">▌</span>
             </div>
           ) : null}
         </pre>

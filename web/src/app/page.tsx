@@ -1,5 +1,6 @@
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 import { CopyCommand } from "@/components/CopyCommand";
+import { InstallHelpTerminal } from "@/components/InstallHelpTerminal";
 import { Reveal } from "@/components/Reveal";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -42,6 +43,7 @@ const featureRows = [
     title: "Grouped when you need it",
     body: "Conventional commits and keyword heuristics sort your work into Features, Fixes, Docs, Refactors, and more — so standup answers are already categorized.",
     caption: "grouped when you need it",
+    command: "git-recap --today",
     reverse: false,
     lines: [
       { kind: "title" as const, text: "api-gateway · 3 commits · since midnight" },
@@ -58,6 +60,7 @@ const featureRows = [
     title: "Scanned across projects",
     body: "Run from a parent folder or pass multiple paths. git-recap aggregates only the repositories where you actually shipped commits in the timeframe.",
     caption: "scanned across projects",
+    command: "git-recap",
     reverse: true,
     lines: [
       { kind: "title" as const, text: "Standup summary · 5 commits · since 1 day ago" },
@@ -74,6 +77,7 @@ const featureRows = [
     title: "Clean output for Slack and notes",
     body: "Use --plain for no colors and no hashes, or --summary-only when you want just the standup block. Copy once, paste into the call.",
     caption: "paste-ready for Slack",
+    command: "git-recap --plain",
     reverse: false,
     lines: [
       { kind: "title" as const, text: "my-app · 2 commits · since 1 day ago" },
@@ -84,6 +88,28 @@ const featureRows = [
       { kind: "bullet" as const, text: "Clarify API auth examples" },
     ],
   },
+];
+
+const summaryLines = [
+  { kind: "title" as const, text: "Standup summary · 8 commits · since 1 day ago" },
+  { kind: "dim" as const, text: "────────────────────────────────────────" },
+  { kind: "cat" as const, text: "Features (4)", tone: "green" as const },
+  { kind: "bullet" as const, text: "Enhance order management UI with search" },
+  { kind: "bullet" as const, text: "Update localization and profile UX" },
+  { kind: "cat" as const, text: "Refactors (4)", tone: "magenta" as const },
+  { kind: "bullet" as const, text: "Update ProductCard layout support" },
+  { kind: "bullet" as const, text: "Clean CheckoutWebView imports" },
+];
+
+const helpRows = [
+  { cmd: "git-recap", note: "summarize current repo / scan cwd" },
+  { cmd: "git-recap [path]", note: "summarize a specific repo" },
+  { cmd: "git-recap --today", note: "commits since midnight" },
+  { cmd: "git-recap --yesterday", note: "yesterday only" },
+  { cmd: "git-recap --week", note: "last seven days" },
+  { cmd: "git-recap --plain", note: "paste into Slack / notes" },
+  { cmd: "git-recap --summary-only", note: "standup block only" },
+  { cmd: "git-recap -h", note: "show help" },
 ];
 
 export default function Home() {
@@ -137,9 +163,10 @@ export default function Home() {
 
           <div className="animate-terminal mx-auto mt-14 max-w-2xl sm:mt-16">
             <TerminalWindow
+              command="git-recap"
               lines={heroLines}
               caption="one command · smart categories · copy into standup notes"
-              animateLines
+              loop
             />
           </div>
         </section>
@@ -180,6 +207,7 @@ export default function Home() {
                     </div>
                     <div className={item.reverse ? "lg:order-1" : ""}>
                       <TerminalWindow
+                        command={item.command}
                         lines={item.lines}
                         caption={item.caption}
                         className="mx-auto w-full max-w-xl lg:max-w-none"
@@ -224,16 +252,8 @@ export default function Home() {
             </Reveal>
             <Reveal delay={2}>
               <TerminalWindow
-                lines={[
-                  { kind: "title", text: "Standup summary · 8 commits · since 1 day ago" },
-                  { kind: "dim", text: "────────────────────────────────────────" },
-                  { kind: "cat", text: "Features (4)", tone: "green" },
-                  { kind: "bullet", text: "Enhance order management UI with search" },
-                  { kind: "bullet", text: "Update localization and profile UX" },
-                  { kind: "cat", text: "Refactors (4)", tone: "magenta" },
-                  { kind: "bullet", text: "Update ProductCard layout support" },
-                  { kind: "bullet", text: "Clean CheckoutWebView imports" },
-                ]}
+                command="git-recap --summary-only"
+                lines={summaryLines}
               />
             </Reveal>
           </div>
@@ -301,47 +321,30 @@ export default function Home() {
                 One brew away
               </h2>
               <p className="mt-4 text-muted">
-                Distributed via the Stackwise Homebrew tap. Update with the rest of your
-                formulae.
+                Commands first — then the install line types itself out. Copy the brew
+                command when you&apos;re ready.
               </p>
             </Reveal>
 
-            <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-2">
-              <Reveal delay={1}>
-                <div className="panel-hover h-full rounded-2xl border border-line-strong bg-bg-panel p-6 sm:p-8">
-                  <h3 className="text-xl font-semibold">Homebrew</h3>
-                  <div className="mt-5">
-                    <CopyCommand command={BREW_INSTALL} />
-                  </div>
-                  <p className="mt-5 text-sm leading-relaxed text-muted">
-                    Modern Homebrew requires trusting third-party taps once. After that,{" "}
-                    <code className="rounded bg-bg-elevated px-1.5 py-0.5 font-mono text-xs text-fg">
-                      brew upgrade git-recap
-                    </code>{" "}
-                    keeps you current.
-                  </p>
-                </div>
-              </Reveal>
+            <Reveal className="mx-auto mt-12 max-w-3xl" delay={1}>
+              <InstallHelpTerminal
+                rows={helpRows}
+                installLabel="install"
+                installCommand={BREW_INSTALL}
+                tagline="Your commits, ready for standup"
+              />
+            </Reveal>
 
-              <Reveal delay={2}>
-                <div className="panel-hover h-full rounded-2xl border border-line-strong bg-bg-panel p-6 sm:p-8">
-                  <h3 className="text-xl font-semibold">From source</h3>
-                  <p className="mt-5 text-sm leading-relaxed text-muted">
-                    Clone the repo, make the script executable, and link it onto your{" "}
-                    <code className="rounded bg-bg-elevated px-1.5 py-0.5 font-mono text-xs text-fg">
-                      PATH
-                    </code>
-                    .
-                  </p>
-                  <pre className="mt-5 overflow-x-auto rounded-xl border border-term-border bg-term-bg p-4 font-mono text-[12px] leading-6 text-term-fg">
-{`git clone https://github.com/StackwiseTechnologiesLtd/git-recap.git
-cd git-recap
-chmod +x bin/git-recap
-ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
-                  </pre>
-                </div>
-              </Reveal>
-            </div>
+            <Reveal className="mx-auto mt-6 max-w-3xl" delay={2}>
+              <CopyCommand command={BREW_INSTALL} />
+              <p className="mt-5 text-center text-sm text-muted">
+                Prefer source? See{" "}
+                <Link href="/docs#install" className="text-accent hover:underline">
+                  docs
+                </Link>
+                .
+              </p>
+            </Reveal>
           </div>
         </section>
 
@@ -354,32 +357,15 @@ ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
               <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
                 Everyday commands
               </h2>
+              <p className="mt-4 text-muted">
+                The install panel above doubles as a quick reference. Full docs —
+                timeframes, routing, and options — live on the{" "}
+                <Link href="/docs" className="text-accent transition hover:underline">
+                  docs page
+                </Link>
+                .
+              </p>
             </Reveal>
-
-            <Reveal className="mx-auto mt-12 max-w-3xl" delay={1}>
-              <div className="overflow-hidden rounded-2xl border border-term-border bg-term-bg">
-                <CommandRow cmd="git-recap" note="Current repo, or scan cwd subdirs" />
-                <CommandRow cmd="git-recap --today" note="Commits since midnight" />
-                <CommandRow cmd="git-recap --yesterday" note="Yesterday only" />
-                <CommandRow cmd="git-recap --week" note="Last seven days" />
-                <CommandRow cmd="git-recap --plain" note="Paste into Slack / notes" />
-                <CommandRow
-                  cmd="git-recap --summary-only"
-                  note="Standup block only"
-                  last
-                />
-              </div>
-            </Reveal>
-
-            <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted">
-              Full docs — install, timeframes, routing, and options — are on the{" "}
-              <Link href="/docs" className="text-accent transition hover:underline">
-                docs page
-              </Link>
-              . Requires Bash and Git with{" "}
-              <code className="font-mono text-xs text-fg/80">user.email</code> or{" "}
-              <code className="font-mono text-xs text-fg/80">user.name</code> set.
-            </p>
           </div>
         </section>
       </main>
@@ -421,27 +407,6 @@ function RouteRow({ label, body }: { label: string; body: string }) {
     <div className="border-t border-line pt-5 first:border-0 first:pt-0">
       <dt className="font-medium text-fg">{label}</dt>
       <dd className="mt-1 text-sm text-muted">{body}</dd>
-    </div>
-  );
-}
-
-function CommandRow({
-  cmd,
-  note,
-  last = false,
-}: {
-  cmd: string;
-  note: string;
-  last?: boolean;
-}) {
-  return (
-    <div
-      className={`flex flex-col gap-1 px-5 py-4 transition-colors hover:bg-white/[0.04] sm:flex-row sm:items-center sm:justify-between sm:gap-6 ${
-        last ? "" : "border-b border-term-border"
-      }`}
-    >
-      <code className="font-mono text-[13px] text-term-green">{cmd}</code>
-      <span className="text-sm text-term-muted">{note}</span>
     </div>
   );
 }
