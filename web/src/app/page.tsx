@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { CopyCommand } from "@/components/CopyCommand";
+import { Reveal } from "@/components/Reveal";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TerminalWindow } from "@/components/TerminalWindow";
 
@@ -73,12 +74,11 @@ const featureTerminals = [
 
 export default function Home() {
   return (
-    <div className="bg-atmosphere relative min-h-screen">
+    <div className="bg-atmosphere relative min-h-screen overflow-x-hidden">
       <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
       <SiteHeader />
 
       <main className="relative">
-        {/* Hero */}
         <section className="mx-auto max-w-6xl px-5 pb-16 pt-14 sm:px-8 sm:pb-24 sm:pt-20">
           <div className="mx-auto max-w-3xl text-center">
             <div className="animate-rise flex flex-col items-center gap-4">
@@ -87,7 +87,7 @@ export default function Home() {
                 alt="git-recap"
                 width={72}
                 height={69}
-                className="h-16 w-auto sm:h-[4.5rem]"
+                className="animate-float h-16 w-auto sm:h-[4.5rem]"
                 priority
               />
               <p className="text-2xl font-semibold tracking-tight text-fg sm:text-3xl">
@@ -99,7 +99,7 @@ export default function Home() {
             </p>
             <h1 className="animate-rise-delay-1 mt-4 text-4xl font-semibold tracking-tight text-fg sm:text-5xl md:text-6xl md:leading-[1.05]">
               Your commits,{" "}
-              <span className="text-accent">ready for standup</span>
+              <span className="accent-underline text-accent">ready for standup</span>
             </h1>
             <p className="animate-rise-delay-2 mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
               git-recap reads local Git history and turns yesterday&apos;s work into a
@@ -113,7 +113,7 @@ export default function Home() {
             <div className="animate-rise-delay-2 mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
                 href="#install"
-                className="inline-flex h-12 items-center justify-center rounded-xl bg-accent px-6 text-sm font-semibold text-[#1a120c] transition hover:brightness-110"
+                className="inline-flex h-12 items-center justify-center rounded-xl bg-accent px-6 text-sm font-semibold text-white transition hover:bg-[#6a1717] active:scale-[0.98]"
               >
                 Install with Homebrew
               </a>
@@ -121,7 +121,7 @@ export default function Home() {
                 href="https://github.com/StackwiseTechnologiesLtd/git-recap"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-12 items-center justify-center rounded-xl border border-line-strong bg-transparent px-6 text-sm font-medium text-fg transition hover:bg-white/5"
+                className="inline-flex h-12 items-center justify-center rounded-xl border border-line-strong bg-transparent px-6 text-sm font-medium text-fg transition hover:border-accent/35 hover:text-accent active:scale-[0.98]"
               >
                 View on GitHub
               </a>
@@ -132,14 +132,14 @@ export default function Home() {
             <TerminalWindow
               lines={heroLines}
               caption="one command · smart categories · copy into standup notes"
+              animateLines
             />
           </div>
         </section>
 
-        {/* Feature strip */}
         <section id="features" className="border-t border-line py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
-            <div className="mx-auto max-w-2xl text-center">
+            <Reveal className="mx-auto max-w-2xl text-center">
               <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
                 Features
               </p>
@@ -150,31 +150,28 @@ export default function Home() {
                 Group commits, scan multiple repos, and ship a clean summary before the
                 call starts.
               </p>
-            </div>
+            </Reveal>
 
             <div className="mt-14 grid gap-8 lg:grid-cols-3">
-              {featureTerminals.map((item) => (
-                <TerminalWindow
-                  key={item.caption}
-                  lines={item.lines}
-                  caption={item.caption}
-                />
+              {featureTerminals.map((item, index) => (
+                <Reveal key={item.caption} delay={(index + 1) as 1 | 2 | 3}>
+                  <TerminalWindow lines={item.lines} caption={item.caption} />
+                </Reveal>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Smart summaries */}
         <section className="border-t border-line py-20 sm:py-28">
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
-            <div>
+            <Reveal>
               <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
                 Smart summaries
               </p>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
                 Features, fixes, chores — already sorted
               </h2>
-              <p className="mt-4 text-muted leading-relaxed">
+              <p className="mt-4 leading-relaxed text-muted">
                 Conventional commits and keyword heuristics classify your work so you
                 talk about outcomes, not hash soup.
               </p>
@@ -194,27 +191,28 @@ export default function Home() {
                   linkLabel="See usage →"
                 />
               </ul>
-            </div>
-            <TerminalWindow
-              lines={[
-                { kind: "title", text: "Standup summary · 8 commits · since 1 day ago" },
-                { kind: "dim", text: "────────────────────────────────────────" },
-                { kind: "cat", text: "Features (4)", tone: "green" },
-                { kind: "bullet", text: "Enhance order management UI with search" },
-                { kind: "bullet", text: "Update localization and profile UX" },
-                { kind: "cat", text: "Refactors (4)", tone: "magenta" },
-                { kind: "bullet", text: "Update ProductCard layout support" },
-                { kind: "bullet", text: "Clean CheckoutWebView imports" },
-              ]}
-            />
+            </Reveal>
+            <Reveal delay={2}>
+              <TerminalWindow
+                lines={[
+                  { kind: "title", text: "Standup summary · 8 commits · since 1 day ago" },
+                  { kind: "dim", text: "────────────────────────────────────────" },
+                  { kind: "cat", text: "Features (4)", tone: "green" },
+                  { kind: "bullet", text: "Enhance order management UI with search" },
+                  { kind: "bullet", text: "Update localization and profile UX" },
+                  { kind: "cat", text: "Refactors (4)", tone: "magenta" },
+                  { kind: "bullet", text: "Update ProductCard layout support" },
+                  { kind: "bullet", text: "Clean CheckoutWebView imports" },
+                ]}
+              />
+            </Reveal>
           </div>
         </section>
 
-        {/* Offline / multi */}
         <section className="border-t border-line py-20 sm:py-28">
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
-            <div className="order-2 lg:order-1">
-              <div className="rounded-2xl border border-line-strong bg-bg-panel p-6 sm:p-8">
+            <Reveal className="order-2 lg:order-1" delay={1}>
+              <div className="panel-hover rounded-2xl border border-line-strong bg-bg-panel p-6 sm:p-8">
                 <div className="font-mono text-xs tracking-wide text-accent uppercase">
                   Routing
                 </div>
@@ -233,15 +231,15 @@ export default function Home() {
                   />
                 </dl>
               </div>
-            </div>
-            <div className="order-1 lg:order-2">
+            </Reveal>
+            <Reveal className="order-1 lg:order-2">
               <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
                 Local & private
               </p>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
                 Entirely offline. Nothing leaves your machine.
               </h2>
-              <p className="mt-4 text-muted leading-relaxed">
+              <p className="mt-4 leading-relaxed text-muted">
                 Pure Bash + git plumbing. No Node runtime, no API keys, no telemetry —
                 just your local author history for the window you choose.
               </p>
@@ -259,14 +257,13 @@ export default function Home() {
                   body="A single executable script you can brew install or symlink."
                 />
               </ul>
-            </div>
+            </Reveal>
           </div>
         </section>
 
-        {/* Install */}
         <section id="install" className="border-t border-line py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
-            <div className="mx-auto max-w-2xl text-center">
+            <Reveal className="mx-auto max-w-2xl text-center">
               <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
                 Install
               </p>
@@ -277,73 +274,78 @@ export default function Home() {
                 Distributed via the Stackwise Homebrew tap. Update with the rest of your
                 formulae.
               </p>
-            </div>
+            </Reveal>
 
             <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-2">
-              <div className="rounded-2xl border border-line-strong bg-bg-panel p-6 sm:p-8">
-                <h3 className="text-xl font-semibold">Homebrew</h3>
-                <div className="mt-5">
-                  <CopyCommand command={BREW_INSTALL} />
+              <Reveal delay={1}>
+                <div className="panel-hover h-full rounded-2xl border border-line-strong bg-bg-panel p-6 sm:p-8">
+                  <h3 className="text-xl font-semibold">Homebrew</h3>
+                  <div className="mt-5">
+                    <CopyCommand command={BREW_INSTALL} />
+                  </div>
+                  <p className="mt-5 text-sm leading-relaxed text-muted">
+                    Modern Homebrew requires trusting third-party taps once. After that,{" "}
+                    <code className="rounded bg-accent-soft px-1.5 py-0.5 font-mono text-xs text-accent">
+                      brew upgrade git-recap
+                    </code>{" "}
+                    keeps you current.
+                  </p>
                 </div>
-                <p className="mt-5 text-sm leading-relaxed text-muted">
-                  Modern Homebrew requires trusting third-party taps once. After that,{" "}
-                  <code className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs text-fg">
-                    brew upgrade git-recap
-                  </code>{" "}
-                  keeps you current.
-                </p>
-              </div>
+              </Reveal>
 
-              <div className="rounded-2xl border border-line-strong bg-bg-panel p-6 sm:p-8">
-                <h3 className="text-xl font-semibold">From source</h3>
-                <p className="mt-5 text-sm leading-relaxed text-muted">
-                  Clone the repo, make the script executable, and link it onto your{" "}
-                  <code className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs text-fg">
-                    PATH
-                  </code>
-                  .
-                </p>
-                <pre className="mt-5 overflow-x-auto rounded-xl border border-line bg-bg-elevated p-4 font-mono text-[12px] leading-6 text-fg/90">
+              <Reveal delay={2}>
+                <div className="panel-hover h-full rounded-2xl border border-line-strong bg-bg-panel p-6 sm:p-8">
+                  <h3 className="text-xl font-semibold">From source</h3>
+                  <p className="mt-5 text-sm leading-relaxed text-muted">
+                    Clone the repo, make the script executable, and link it onto your{" "}
+                    <code className="rounded bg-accent-soft px-1.5 py-0.5 font-mono text-xs text-accent">
+                      PATH
+                    </code>
+                    .
+                  </p>
+                  <pre className="mt-5 overflow-x-auto rounded-xl border border-line bg-bg-elevated p-4 font-mono text-[12px] leading-6 text-fg/90">
 {`git clone https://github.com/StackwiseTechnologiesLtd/git-recap.git
 cd git-recap
 chmod +x bin/git-recap
 ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
-                </pre>
-              </div>
+                  </pre>
+                </div>
+              </Reveal>
             </div>
           </div>
         </section>
 
-        {/* Help / usage */}
         <section id="help" className="border-t border-line py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
-            <div className="mx-auto max-w-2xl text-center">
+            <Reveal className="mx-auto max-w-2xl text-center">
               <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
                 Help
               </p>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
                 Everyday commands
               </h2>
-            </div>
+            </Reveal>
 
-            <div className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-2xl border border-line-strong bg-bg-panel">
-              <CommandRow cmd="git-recap" note="Current repo, or scan cwd subdirs" />
-              <CommandRow cmd="git-recap --today" note="Commits since midnight" />
-              <CommandRow cmd="git-recap --yesterday" note="Yesterday only" />
-              <CommandRow cmd="git-recap --week" note="Last seven days" />
-              <CommandRow cmd="git-recap --plain" note="Paste into Slack / notes" />
-              <CommandRow
-                cmd="git-recap --summary-only"
-                note="Standup block only"
-                last
-              />
-            </div>
+            <Reveal className="mx-auto mt-12 max-w-3xl" delay={1}>
+              <div className="overflow-hidden rounded-2xl border border-line-strong bg-bg-panel">
+                <CommandRow cmd="git-recap" note="Current repo, or scan cwd subdirs" />
+                <CommandRow cmd="git-recap --today" note="Commits since midnight" />
+                <CommandRow cmd="git-recap --yesterday" note="Yesterday only" />
+                <CommandRow cmd="git-recap --week" note="Last seven days" />
+                <CommandRow cmd="git-recap --plain" note="Paste into Slack / notes" />
+                <CommandRow
+                  cmd="git-recap --summary-only"
+                  note="Standup block only"
+                  last
+                />
+              </div>
+            </Reveal>
 
             <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted">
               Full docs live in the{" "}
               <a
                 href="https://github.com/StackwiseTechnologiesLtd/git-recap#readme"
-                className="text-accent transition hover:brightness-110"
+                className="text-accent transition hover:underline"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -357,19 +359,25 @@ ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
         </section>
       </main>
 
-      <footer className="border-t border-line">
+      <footer className="border-t border-line bg-bg-elevated/60">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="" width={18} height={17} className="h-4 w-auto opacity-90" />
+            <Image
+              src="/logo.svg"
+              alt=""
+              width={18}
+              height={17}
+              className="h-4 w-auto"
+            />
             <span>© {new Date().getFullYear()} git-recap</span>
           </p>
           <div className="flex flex-wrap gap-5">
-            <a href="#" className="hover:text-fg">
+            <a href="#" className="transition-colors hover:text-accent">
               Home
             </a>
             <a
               href="https://github.com/StackwiseTechnologiesLtd/git-recap"
-              className="hover:text-fg"
+              className="transition-colors hover:text-accent"
               target="_blank"
               rel="noreferrer"
             >
@@ -377,7 +385,7 @@ ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
             </a>
             <a
               href="https://github.com/StackwiseTechnologiesLtd/git-recap/releases"
-              className="hover:text-fg"
+              className="transition-colors hover:text-accent"
               target="_blank"
               rel="noreferrer"
             >
@@ -385,7 +393,7 @@ ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
             </a>
             <a
               href="https://github.com/StackwiseTechnologiesLtd/homebrew-tools"
-              className="hover:text-fg"
+              className="transition-colors hover:text-accent"
               target="_blank"
               rel="noreferrer"
             >
@@ -415,7 +423,10 @@ function FeaturePoint({
       <h3 className="font-medium text-fg">{title}</h3>
       <p className="mt-1 text-sm leading-relaxed text-muted">{body}</p>
       {href && linkLabel ? (
-        <a href={href} className="mt-2 inline-block text-sm text-accent hover:brightness-110">
+        <a
+          href={href}
+          className="mt-2 inline-block text-sm text-accent transition hover:underline"
+        >
           {linkLabel}
         </a>
       ) : null}
@@ -443,7 +454,7 @@ function CommandRow({
 }) {
   return (
     <div
-      className={`flex flex-col gap-1 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 ${
+      className={`flex flex-col gap-1 px-5 py-4 transition-colors hover:bg-accent-soft/60 sm:flex-row sm:items-center sm:justify-between sm:gap-6 ${
         last ? "" : "border-b border-line"
       }`}
     >

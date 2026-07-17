@@ -13,18 +13,21 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-bg/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-line bg-bg/85 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5 sm:h-16 sm:px-8">
-        <a href="#" className="flex items-center gap-2.5 font-semibold tracking-tight">
+        <a
+          href="#"
+          className="group flex items-center gap-2.5 font-semibold tracking-tight text-fg"
+        >
           <Image
             src="/logo.svg"
             alt=""
             width={28}
             height={27}
-            className="h-7 w-auto"
+            className="h-7 w-auto transition-transform duration-300 group-hover:-translate-y-0.5"
             priority
           />
-          <span>git-recap</span>
+          <span className="transition-colors group-hover:text-accent">git-recap</span>
         </a>
 
         <nav className="hidden items-center gap-7 text-sm text-muted md:flex">
@@ -32,7 +35,7 @@ export function SiteHeader() {
             <a
               key={link.href}
               href={link.href}
-              className="transition-colors hover:text-fg"
+              className="relative transition-colors hover:text-accent after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent after:transition-[width] after:duration-300 hover:after:w-full"
             >
               {link.label}
             </a>
@@ -42,7 +45,7 @@ export function SiteHeader() {
             href="https://github.com/StackwiseTechnologiesLtd/git-recap"
             target="_blank"
             rel="noreferrer"
-            className="transition-colors hover:text-fg"
+            className="transition-colors hover:text-accent"
             aria-label="GitHub"
           >
             <GitHubIcon className="h-5 w-5" />
@@ -51,7 +54,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="rounded-lg border border-line-strong px-3 py-1.5 text-sm text-muted md:hidden"
+          className="rounded-lg border border-line-strong px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent/30 hover:text-accent md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-label="Toggle menu"
@@ -67,7 +70,7 @@ export function SiteHeader() {
               <a
                 key={link.href}
                 href={link.href}
-                className="hover:text-fg"
+                className="hover:text-accent"
                 onClick={() => setOpen(false)}
               >
                 {link.label}
@@ -77,7 +80,7 @@ export function SiteHeader() {
               href="https://github.com/StackwiseTechnologiesLtd/git-recap"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-fg"
+              className="hover:text-accent"
             >
               GitHub
             </a>
