@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+# git-recap — aggregate your local commit messages for standups.
+# Pure Bash + git; works entirely offline from local .git state.
+
+set -euo pipefail
+
+# ---------------------------------------------------------------------------
+# Colors (only when stdout is a TTY)
+# ---------------------------------------------------------------------------
+if [[ -t 1 ]]; then
+  BOLD=$'\033[1m'
+  DIM=$'\033[2m'
+  CYAN=$'\033[36m'
+  RESET=$'\033[0m'
+else
+  BOLD='' DIM='' CYAN='' RESET=''
+fi
+
+# ---------------------------------------------------------------------------
+# Defaults / configuration
+# ---------------------------------------------------------------------------
+# Timeframe: GIT_RECAP_SINCE env, or --since / -s flag, else last 24 hours.
+SINCE="${GIT_RECAP_SINCE:-1 day ago}"
+TARGETS=()
+
+usage() {
+  cat <<EOF
+Usage: git-recap [options] [path ...]
+
+Aggregate your local Git commit messages for daily standups.
+Works entirely offline from local .git state.
+
+Options:
+  -s, --since <when>   Commits since this date (default: "1 day ago"
+                       or \$GIT_RECAP_SINCE)
+  -h, --help           Show this help
+
+Examples:
+  git-recap                          # current repo, or scan cwd subdirs
+  git-recap project-a ~/code/app     # specific targets
+  git-recap --since "2 days ago"
+  GIT_RECAP_SINCE="1 week ago" git-recap
+EOF
+}
+
+# ---------------------------------------------------------------------------
+# Argument parsing
+# ---------------------------------------------------------------------------
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -s|--since)
+      if [[ $# -lt 2 ]]; then
+        echo "error: $1 requires an argument" >&2
+        exit 1
+      fi
+      SINCE="$2"
+      shift 2
+      ;;
+    --since=*)
+      SINCE="${1#*=}"
+      shift
+      ;;
+    --)
+      shift
+      TARGETS+=("$@")
+      break
+      ;;
+    -*)
+      echo "error: unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+    *)
+      TARGETS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+# ---------------------------------------------------------------------------
+# Author lookup
+# ---------------------------------------------------------------------------
+AUTHOR="$(git config user.name 2>/dev/null || true)"
+if [[ -z "$AUTHOR" ]]; then
+  echo "error: git config user.name is not set" >&2
+  echo "  run: git config --global user.name \"Your Name\"" >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+# True if path has a .git entry at its root (dir, file, or submodule).
+has_git_dir() {
+  [[ -e "${1}/.git" ]]
+}
+
+# True if cwd (or given dir) is inside a Git working tree.
+inside_git_repo() {
+  git -C "${1:-.}" rev-parse --is-inside-work-tree >/dev/null 2>&1
+}
+
+# Print commits for one repo if the author has any in the timeframe.
+# Returns 0 if anything was printed, 1 otherwise.
+# When require_git_dir=1, the path must contain a .git entry (Cases A / C).
+recap_repo() {
+  local dir="$1"
+  local require_git_dir="${2:-0}"
+  local label commits git_dir
+
+  if has_git_dir "$dir"; then
+    git_dir="$dir"
+  elif [[ "$require_git_dir" -eq 0 ]] && inside_git_repo "$dir"; then
+    git_dir="$(git -C "$dir" rev-parse --show-toplevel)"
+  else
+    return 1
+  fi
+
+  # Normalize "." / relative paths so the header shows a real name.
+  if [[ "$git_dir" == "." || "$git_dir" != /* ]]; then
+    git_dir="$(cd "$git_dir" && pwd)"
+  fi
+
+  commits="$(git -C "$git_dir" log \
+    --author="$AUTHOR" \
+    --since="$SINCE" \
+    --pretty=format:'%h%x09%s' \
+    --no-merges \
+    2>/dev/null || true)"
+
+  if [[ -z "$commits" ]]; then
+    return 1
+  fi
+
+  label="$(basename "$git_dir")"
+  printf '\n%s%s%s%s\n' "$BOLD" "$CYAN" "$label" "$RESET"
+  printf '%s%s%s\n' "$DIM" "────────────────────────────────────────" "$RESET"
+
+  while IFS=$'\t' read -r hash subject; do
+    [[ -z "$hash" ]] && continue
+    printf '  • %s (%s%s%s)\n' "$subject" "$DIM" "$hash" "$RESET"
+  done <<< "$commits"
+
+  return 0
+}
+
+# Collect immediate child directories that contain a .git entry.
+# Emits NUL-delimited paths (safe with spaces in names).
+scan_subdirs() {
+  local parent="$1"
+  local entry
+
+  shopt -s nullglob
+  for entry in "$parent"/*/; do
+    entry="${entry%/}"
+    if has_git_dir "$entry"; then
+      printf '%s\0' "$entry"
+    fi
+  done
+  shopt -u nullglob
+}
+
+# ---------------------------------------------------------------------------
+# Resolve target list (Cases A / B / C)
+# ---------------------------------------------------------------------------
+REPOS=()
+REQUIRE_GIT_DIR=0
+
+if [[ ${#TARGETS[@]} -gt 0 ]]; then
+  # CASE A: specific targets (paths or names relative to cwd)
+  REQUIRE_GIT_DIR=1
+  for target in "${TARGETS[@]}"; do
+    if [[ ! -d "$target" ]]; then
+      echo "warning: skipping '${target}' (not a directory)" >&2
+      continue
+    fi
+    if ! has_git_dir "$target"; then
+      echo "warning: skipping '$(basename "$target")' (not a Git repository)" >&2
+      continue
+    fi
+    REPOS+=("$target")
+  done
+elif inside_git_repo "."; then
+  # CASE B: no args, inside a Git repo
+  REPOS+=(".")
+else
+  # CASE C: no args, not in a repo — scan immediate subdirectories
+  REQUIRE_GIT_DIR=1
+  while IFS= read -r -d '' entry; do
+    REPOS+=("$entry")
+  done < <(scan_subdirs ".")
+fi
+
+if [[ ${#REPOS[@]} -eq 0 ]]; then
+  echo "No Git repositories found to recap." >&2
+  exit 0
+fi
+
+# ---------------------------------------------------------------------------
+# Run
+# ---------------------------------------------------------------------------
+printed=0
+for repo in "${REPOS[@]}"; do
+  if recap_repo "$repo" "$REQUIRE_GIT_DIR"; then
+    printed=1
+  fi
+done
+
+if [[ "$printed" -eq 0 ]]; then
+  printf '%sNo commits by %s%s%s since %s%s%s.\n' \
+    "$DIM" "$BOLD" "$AUTHOR" "$RESET$DIM" "$BOLD" "$SINCE" "$RESET"
+fi
+
+printf '\n'
