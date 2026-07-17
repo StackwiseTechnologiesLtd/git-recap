@@ -9,7 +9,7 @@ const BREW_INSTALL =
   "brew tap StackwiseTechnologiesLtd/tools && brew trust StackwiseTechnologiesLtd/tools && brew install git-recap";
 
 const heroLines = [
-  { kind: "title" as const, text: "s2g-mobile-app · 8 commits · since 1 day ago" },
+  { kind: "title" as const, text: "my-app · 8 commits · since 1 day ago" },
   { kind: "dim" as const, text: "────────────────────────────────────────" },
   { kind: "cat" as const, text: "Features (4)", tone: "green" as const },
   {
