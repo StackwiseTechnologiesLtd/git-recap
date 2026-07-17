@@ -5,42 +5,54 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Colors (only when stdout is a TTY)
-# ---------------------------------------------------------------------------
-if [[ -t 1 ]]; then
-  BOLD=$'\033[1m'
-  DIM=$'\033[2m'
-  CYAN=$'\033[36m'
-  RESET=$'\033[0m'
-else
-  BOLD='' DIM='' CYAN='' RESET=''
-fi
-
-# ---------------------------------------------------------------------------
 # Defaults / configuration
 # ---------------------------------------------------------------------------
-# Timeframe: GIT_RECAP_SINCE env, or --since / -s flag, else last 24 hours.
 SINCE="${GIT_RECAP_SINCE:-1 day ago}"
+UNTIL="${GIT_RECAP_UNTIL:-}"
+MAX_SUBJECT_LENGTH="${GIT_RECAP_MAX_SUBJECT_LENGTH:-88}"
+FLAT=0
+PLAIN=0
+SUMMARY_ONLY=0
 TARGETS=()
+CATEGORIES=(Features Fixes Docs Refactors Tests Performance Chores Other)
+
+# Global summary state. Kept as scalar variables for macOS Bash 3.x support.
+TOTAL_COMMITS=0
+PRINTED_REPOS=0
+G_FEATURES_COUNT=0; G_FIXES_COUNT=0; G_DOCS_COUNT=0; G_REFACTORS_COUNT=0
+G_TESTS_COUNT=0; G_PERFORMANCE_COUNT=0; G_CHORES_COUNT=0; G_OTHER_COUNT=0
+G_FEATURES_ITEMS=''; G_FIXES_ITEMS=''; G_DOCS_ITEMS=''; G_REFACTORS_ITEMS=''
+G_TESTS_ITEMS=''; G_PERFORMANCE_ITEMS=''; G_CHORES_ITEMS=''; G_OTHER_ITEMS=''
 
 usage() {
-  cat <<EOF
+  cat <<EOF_USAGE
 Usage: git-recap [options] [path ...]
 
 Aggregate your local Git commit messages for daily standups.
+Groups contributions into Features / Fixes / Docs / Refactors / etc.
 Works entirely offline from local .git state.
 
 Options:
   -s, --since <when>   Commits since this date (default: "1 day ago"
                        or \$GIT_RECAP_SINCE)
+      --today          Shortcut for --since "midnight"
+      --yesterday      Show yesterday's commits (yesterday 00:00 to today 00:00)
+      --week           Shortcut for --since "1 week ago"
+      --max-length <n> Max summary bullet length (default: 88)
+  -p, --plain          Paste-friendly output (no colors, no hashes)
+      --summary-only   Only print the final standup summary block
+      --flat           Skip smart grouping; print a flat commit list
   -h, --help           Show this help
 
 Examples:
-  git-recap                          # current repo, or scan cwd subdirs
+  git-recap                          # smart standup summary
   git-recap project-a ~/code/app     # specific targets
-  git-recap --since "2 days ago"
-  GIT_RECAP_SINCE="1 week ago" git-recap
-EOF
+  git-recap --today
+  git-recap --yesterday
+  git-recap --plain                  # copy into Slack / notes
+  git-recap --summary-only           # just the standup block
+  git-recap --flat                   # raw commit list
+EOF_USAGE
 }
 
 # ---------------------------------------------------------------------------
@@ -58,10 +70,51 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       SINCE="$2"
+      UNTIL="${GIT_RECAP_UNTIL:-}"
       shift 2
       ;;
     --since=*)
       SINCE="${1#*=}"
+      UNTIL="${GIT_RECAP_UNTIL:-}"
+      shift
+      ;;
+    --today)
+      SINCE="midnight"
+      UNTIL="${GIT_RECAP_UNTIL:-}"
+      shift
+      ;;
+    --yesterday)
+      SINCE="yesterday 00:00"
+      UNTIL="today 00:00"
+      shift
+      ;;
+    --week)
+      SINCE="1 week ago"
+      UNTIL="${GIT_RECAP_UNTIL:-}"
+      shift
+      ;;
+    --max-length)
+      if [[ $# -lt 2 ]]; then
+        echo "error: $1 requires an argument" >&2
+        exit 1
+      fi
+      MAX_SUBJECT_LENGTH="$2"
+      shift 2
+      ;;
+    --max-length=*)
+      MAX_SUBJECT_LENGTH="${1#*=}"
+      shift
+      ;;
+    -p|--plain)
+      PLAIN=1
+      shift
+      ;;
+    --summary-only)
+      SUMMARY_ONLY=1
+      shift
+      ;;
+    --flat)
+      FLAT=1
       shift
       ;;
     --)
@@ -81,37 +134,235 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# ---------------------------------------------------------------------------
-# Author lookup
-# ---------------------------------------------------------------------------
-AUTHOR="$(git config user.name 2>/dev/null || true)"
-if [[ -z "$AUTHOR" ]]; then
-  echo "error: git config user.name is not set" >&2
-  echo "  run: git config --global user.name \"Your Name\"" >&2
+case "$MAX_SUBJECT_LENGTH" in
+  ''|*[!0-9]*)
+    echo "error: --max-length must be a positive integer" >&2
+    exit 1
+    ;;
+esac
+if [[ "$MAX_SUBJECT_LENGTH" -lt 20 ]]; then
+  echo "error: --max-length must be at least 20" >&2
+  exit 1
+fi
+
+if [[ "$FLAT" -eq 1 && "$SUMMARY_ONLY" -eq 1 ]]; then
+  echo "error: --flat and --summary-only cannot be used together" >&2
   exit 1
 fi
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Colors (TTY only, unless --plain)
 # ---------------------------------------------------------------------------
+if [[ "$PLAIN" -eq 0 && -t 1 ]]; then
+  BOLD=$'\033[1m'
+  DIM=$'\033[2m'
+  CYAN=$'\033[36m'
+  GREEN=$'\033[32m'
+  YELLOW=$'\033[33m'
+  MAGENTA=$'\033[35m'
+  BLUE=$'\033[34m'
+  RESET=$'\033[0m'
+else
+  BOLD='' DIM='' CYAN='' GREEN='' YELLOW='' MAGENTA='' BLUE='' RESET=''
+fi
 
-# True if path has a .git entry at its root (dir, file, or submodule).
+# ---------------------------------------------------------------------------
+# Author lookup
+# ---------------------------------------------------------------------------
+AUTHOR_NAME="$(git config user.name 2>/dev/null || true)"
+AUTHOR_EMAIL="$(git config user.email 2>/dev/null || true)"
+AUTHOR_PATTERN="${AUTHOR_EMAIL:-$AUTHOR_NAME}"
+DISPLAY_AUTHOR="${AUTHOR_NAME:-$AUTHOR_EMAIL}"
+
+if [[ -z "$AUTHOR_PATTERN" ]]; then
+  echo "error: git config user.email or git config user.name is not set" >&2
+  echo "  run: git config --global user.email \"you@example.com\"" >&2
+  echo "  or:  git config --global user.name \"Your Name\"" >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Classification and formatting
+# ---------------------------------------------------------------------------
+category_color() {
+  case "$1" in
+    Features) printf '%s' "$GREEN" ;;
+    Fixes) printf '%s' "$YELLOW" ;;
+    Docs) printf '%s' "$BLUE" ;;
+    Refactors) printf '%s' "$MAGENTA" ;;
+    Tests) printf '%s' "$CYAN" ;;
+    Performance) printf '%s' "$GREEN" ;;
+    Chores|Other) printf '%s' "$DIM" ;;
+    *) printf '%s' "$DIM" ;;
+  esac
+}
+
+classify_commit() {
+  local subject="$1" lower
+  lower="$(printf '%s' "$subject" | tr '[:upper:]' '[:lower:]')"
+
+  case "$lower" in
+    feat:*|feat!:*|feat\(*\):*|feat\(*\)!:*|feature:*|feature!:*|feature\(*\):*|feature\(*\)!:*)
+      echo Features; return ;;
+    fix:*|fix!:*|fix\(*\):*|fix\(*\)!:*|bugfix:*|bugfix!:*|hotfix:*|hotfix!:*)
+      echo Fixes; return ;;
+    doc:*|doc!:*|docs:*|docs!:*|doc\(*\):*|docs\(*\):*|doc\(*\)!:*|docs\(*\)!:*)
+      echo Docs; return ;;
+    refactor:*|refactor!:*|refactor\(*\):*|refactor\(*\)!:*)
+      echo Refactors; return ;;
+    test:*|test!:*|tests:*|tests!:*|test\(*\):*|tests\(*\):*|test\(*\)!:*|tests\(*\)!:*)
+      echo Tests; return ;;
+    perf:*|perf!:*|perf\(*\):*|perf\(*\)!:*)
+      echo Performance; return ;;
+    chore:*|chore!:*|build:*|build!:*|ci:*|ci!:*|style:*|style!:*|dep:*|deps:*|chore\(*\):*|build\(*\):*|ci\(*\):*|style\(*\):*|deps\(*\):*)
+      echo Chores; return ;;
+  esac
+
+  case "$lower" in
+    *fix*|*bug*|*hotfix*|*patch*|*resolve*|*repair*|*regress*) echo Fixes ;;
+    *feat*|*feature*|*add\ *|*added\ *|*implement*|*introduce*|*create\ *|*created\ *|*new\ *) echo Features ;;
+    *doc*|*readme*|*comment*|*changelog*) echo Docs ;;
+    *refactor*|*clean*|*simplify*|*restructure*|*rename*|*extract*) echo Refactors ;;
+    *test*|*spec*|*coverage*|*assert*) echo Tests ;;
+    *perf*|*optim*|*speed*|*cache*) echo Performance ;;
+    *chore*|*bump*|*deps*|*dependenc*|*upgrade*|*ci\ *|*build*|*release*|*lint*|*format*) echo Chores ;;
+    *) echo Other ;;
+  esac
+}
+
+clean_subject() {
+  local subject="$1"
+  subject="$(printf '%s' "$subject" | sed -E 's/^[A-Za-z]+(\([^)]*\))?!?:[[:space:]]+//')"
+  if [[ "$subject" =~ ^[a-z] ]]; then
+    subject="$(printf '%s' "${subject:0:1}" | tr '[:lower:]' '[:upper:]')${subject:1}"
+  fi
+  printf '%s' "$subject"
+}
+
+# Truncate at a word boundary when possible.
+shorten_subject() {
+  local subject="$1" max="$MAX_SUBJECT_LENGTH" cut
+  if [[ ${#subject} -le "$max" ]]; then
+    printf '%s' "$subject"
+    return
+  fi
+
+  cut="${subject:0:$((max - 3))}"
+  if [[ "$cut" == *' '* ]]; then
+    cut="${cut% *}"
+  fi
+  if [[ ${#cut} -lt 12 ]]; then
+    cut="${subject:0:$((max - 3))}"
+  fi
+  # Drop dangling separators left by the cut.
+  cut="$(printf '%s' "$cut" | sed -E 's/[[:space:][:punct:]]+$//')"
+  printf '%s...' "$cut"
+}
+
+timeframe_label() {
+  if [[ -n "$UNTIL" ]]; then
+    printf '%s to %s' "$SINCE" "$UNTIL"
+  else
+    printf 'since %s' "$SINCE"
+  fi
+}
+
+format_bullet() {
+  local subject="$1" hash="$2"
+  if [[ "$PLAIN" -eq 1 ]]; then
+    printf '    • %s\n' "$subject"
+  else
+    printf '    • %s (%s%s%s)\n' "$subject" "$DIM" "$hash" "$RESET"
+  fi
+}
+
+record_global() {
+  local cat="$1" repo="$2" subject="$3" hash="$4" line
+  line="${repo}"$'\t'"${subject}"$'\t'"${hash}"$'\n'
+  TOTAL_COMMITS=$((TOTAL_COMMITS + 1))
+  case "$cat" in
+    Features) G_FEATURES_COUNT=$((G_FEATURES_COUNT + 1)); G_FEATURES_ITEMS="${G_FEATURES_ITEMS}${line}" ;;
+    Fixes) G_FIXES_COUNT=$((G_FIXES_COUNT + 1)); G_FIXES_ITEMS="${G_FIXES_ITEMS}${line}" ;;
+    Docs) G_DOCS_COUNT=$((G_DOCS_COUNT + 1)); G_DOCS_ITEMS="${G_DOCS_ITEMS}${line}" ;;
+    Refactors) G_REFACTORS_COUNT=$((G_REFACTORS_COUNT + 1)); G_REFACTORS_ITEMS="${G_REFACTORS_ITEMS}${line}" ;;
+    Tests) G_TESTS_COUNT=$((G_TESTS_COUNT + 1)); G_TESTS_ITEMS="${G_TESTS_ITEMS}${line}" ;;
+    Performance) G_PERFORMANCE_COUNT=$((G_PERFORMANCE_COUNT + 1)); G_PERFORMANCE_ITEMS="${G_PERFORMANCE_ITEMS}${line}" ;;
+    Chores) G_CHORES_COUNT=$((G_CHORES_COUNT + 1)); G_CHORES_ITEMS="${G_CHORES_ITEMS}${line}" ;;
+    *) G_OTHER_COUNT=$((G_OTHER_COUNT + 1)); G_OTHER_ITEMS="${G_OTHER_ITEMS}${line}" ;;
+  esac
+}
+
+# ---------------------------------------------------------------------------
+# Repo helpers
+# ---------------------------------------------------------------------------
 has_git_dir() {
   [[ -e "${1}/.git" ]]
 }
 
-# True if cwd (or given dir) is inside a Git working tree.
 inside_git_repo() {
   git -C "${1:-.}" rev-parse --is-inside-work-tree >/dev/null 2>&1
 }
 
-# Print commits for one repo if the author has any in the timeframe.
-# Returns 0 if anything was printed, 1 otherwise.
-# When require_git_dir=1, the path must contain a .git entry (Cases A / C).
+log_commits() {
+  local git_dir="$1"
+  local -a args
+  args=(log --author="$AUTHOR_PATTERN" --since="$SINCE")
+  if [[ -n "$UNTIL" ]]; then
+    args+=(--until="$UNTIL")
+  fi
+  args+=(--pretty=format:%h%x09%s --no-merges)
+  git -C "$git_dir" "${args[@]}" 2>/dev/null || true
+}
+
+add_local_item() {
+  local cat="$1" item="$2"
+  case "$cat" in
+    Features) FEATURES_COUNT=$((FEATURES_COUNT + 1)); FEATURES_ITEMS="${FEATURES_ITEMS}${item}" ;;
+    Fixes) FIXES_COUNT=$((FIXES_COUNT + 1)); FIXES_ITEMS="${FIXES_ITEMS}${item}" ;;
+    Docs) DOCS_COUNT=$((DOCS_COUNT + 1)); DOCS_ITEMS="${DOCS_ITEMS}${item}" ;;
+    Refactors) REFACTORS_COUNT=$((REFACTORS_COUNT + 1)); REFACTORS_ITEMS="${REFACTORS_ITEMS}${item}" ;;
+    Tests) TESTS_COUNT=$((TESTS_COUNT + 1)); TESTS_ITEMS="${TESTS_ITEMS}${item}" ;;
+    Performance) PERFORMANCE_COUNT=$((PERFORMANCE_COUNT + 1)); PERFORMANCE_ITEMS="${PERFORMANCE_ITEMS}${item}" ;;
+    Chores) CHORES_COUNT=$((CHORES_COUNT + 1)); CHORES_ITEMS="${CHORES_ITEMS}${item}" ;;
+    *) OTHER_COUNT=$((OTHER_COUNT + 1)); OTHER_ITEMS="${OTHER_ITEMS}${item}" ;;
+  esac
+}
+
+count_for_category() {
+  case "$1" in
+    Features) echo "$FEATURES_COUNT" ;;
+    Fixes) echo "$FIXES_COUNT" ;;
+    Docs) echo "$DOCS_COUNT" ;;
+    Refactors) echo "$REFACTORS_COUNT" ;;
+    Tests) echo "$TESTS_COUNT" ;;
+    Performance) echo "$PERFORMANCE_COUNT" ;;
+    Chores) echo "$CHORES_COUNT" ;;
+    *) echo "$OTHER_COUNT" ;;
+  esac
+}
+
+items_for_category() {
+  case "$1" in
+    Features) printf '%s' "$FEATURES_ITEMS" ;;
+    Fixes) printf '%s' "$FIXES_ITEMS" ;;
+    Docs) printf '%s' "$DOCS_ITEMS" ;;
+    Refactors) printf '%s' "$REFACTORS_ITEMS" ;;
+    Tests) printf '%s' "$TESTS_ITEMS" ;;
+    Performance) printf '%s' "$PERFORMANCE_ITEMS" ;;
+    Chores) printf '%s' "$CHORES_ITEMS" ;;
+    *) printf '%s' "$OTHER_ITEMS" ;;
+  esac
+}
+
 recap_repo() {
-  local dir="$1"
-  local require_git_dir="${2:-0}"
-  local label commits git_dir
+  local dir="$1" require_git_dir="${2:-0}"
+  local git_dir label commits hash subject cat cleaned short item count color
+  local repo_count=0 noun
+
+  FEATURES_COUNT=0; FIXES_COUNT=0; DOCS_COUNT=0; REFACTORS_COUNT=0
+  TESTS_COUNT=0; PERFORMANCE_COUNT=0; CHORES_COUNT=0; OTHER_COUNT=0
+  FEATURES_ITEMS=''; FIXES_ITEMS=''; DOCS_ITEMS=''; REFACTORS_ITEMS=''
+  TESTS_ITEMS=''; PERFORMANCE_ITEMS=''; CHORES_ITEMS=''; OTHER_ITEMS=''
 
   if has_git_dir "$dir"; then
     git_dir="$dir"
@@ -121,40 +372,76 @@ recap_repo() {
     return 1
   fi
 
-  # Normalize "." / relative paths so the header shows a real name.
   if [[ "$git_dir" == "." || "$git_dir" != /* ]]; then
     git_dir="$(cd "$git_dir" && pwd)"
   fi
 
-  commits="$(git -C "$git_dir" log \
-    --author="$AUTHOR" \
-    --since="$SINCE" \
-    --pretty=format:'%h%x09%s' \
-    --no-merges \
-    2>/dev/null || true)"
-
+  commits="$(log_commits "$git_dir")"
   if [[ -z "$commits" ]]; then
     return 1
   fi
 
   label="$(basename "$git_dir")"
-  printf '\n%s%s%s%s\n' "$BOLD" "$CYAN" "$label" "$RESET"
-  printf '%s%s%s\n' "$DIM" "────────────────────────────────────────" "$RESET"
 
+  # Collect first so we can show an accurate commit count in the header.
   while IFS=$'\t' read -r hash subject; do
     [[ -z "$hash" ]] && continue
-    printf '  • %s (%s%s%s)\n' "$subject" "$DIM" "$hash" "$RESET"
+    cat="$(classify_commit "$subject")"
+    cleaned="$(clean_subject "$subject")"
+    short="$(shorten_subject "$cleaned")"
+    record_global "$cat" "$label" "$short" "$hash"
+    repo_count=$((repo_count + 1))
+
+    if [[ "$FLAT" -eq 1 ]]; then
+      item="${subject}"$'\t'"${hash}"$'\n'
+    else
+      item="${short}"$'\t'"${hash}"$'\n'
+    fi
+    add_local_item "$cat" "$item"
   done <<< "$commits"
+
+  PRINTED_REPOS=$((PRINTED_REPOS + 1))
+
+  # --summary-only accumulates globally and skips per-repo detail.
+  if [[ "$SUMMARY_ONLY" -eq 1 ]]; then
+    return 0
+  fi
+
+  noun="commits"
+  [[ "$repo_count" -eq 1 ]] && noun="commit"
+  printf '\n%s%s%s%s %s· %s %s · %s%s\n' \
+    "$BOLD" "$CYAN" "$label" "$RESET" "$DIM" "$repo_count" "$noun" "$(timeframe_label)" "$RESET"
+  printf '%s%s%s\n' "$DIM" "────────────────────────────────────────" "$RESET"
+
+  if [[ "$FLAT" -eq 1 ]]; then
+    while IFS=$'\t' read -r hash subject; do
+      [[ -z "$hash" ]] && continue
+      if [[ "$PLAIN" -eq 1 ]]; then
+        printf '  • %s\n' "$subject"
+      else
+        printf '  • %s (%s%s%s)\n' "$subject" "$DIM" "$hash" "$RESET"
+      fi
+    done <<< "$commits"
+    return 0
+  fi
+
+  for cat in "${CATEGORIES[@]}"; do
+    count="$(count_for_category "$cat")"
+    [[ "$count" -eq 0 ]] && continue
+    color="$(category_color "$cat")"
+    printf '  %s%s%s (%s)\n' "$BOLD$color" "$cat" "$RESET" "$count"
+
+    while IFS=$'\t' read -r subject hash; do
+      [[ -z "$hash" ]] && continue
+      format_bullet "$subject" "$hash"
+    done <<< "$(items_for_category "$cat")"
+  done
 
   return 0
 }
 
-# Collect immediate child directories that contain a .git entry.
-# Emits NUL-delimited paths (safe with spaces in names).
 scan_subdirs() {
-  local parent="$1"
-  local entry
-
+  local parent="$1" entry
   shopt -s nullglob
   for entry in "$parent"/*/; do
     entry="${entry%/}"
@@ -165,6 +452,70 @@ scan_subdirs() {
   shopt -u nullglob
 }
 
+global_count_for_category() {
+  case "$1" in
+    Features) echo "$G_FEATURES_COUNT" ;;
+    Fixes) echo "$G_FIXES_COUNT" ;;
+    Docs) echo "$G_DOCS_COUNT" ;;
+    Refactors) echo "$G_REFACTORS_COUNT" ;;
+    Tests) echo "$G_TESTS_COUNT" ;;
+    Performance) echo "$G_PERFORMANCE_COUNT" ;;
+    Chores) echo "$G_CHORES_COUNT" ;;
+    *) echo "$G_OTHER_COUNT" ;;
+  esac
+}
+
+global_items_for_category() {
+  case "$1" in
+    Features) printf '%s' "$G_FEATURES_ITEMS" ;;
+    Fixes) printf '%s' "$G_FIXES_ITEMS" ;;
+    Docs) printf '%s' "$G_DOCS_ITEMS" ;;
+    Refactors) printf '%s' "$G_REFACTORS_ITEMS" ;;
+    Tests) printf '%s' "$G_TESTS_ITEMS" ;;
+    Performance) printf '%s' "$G_PERFORMANCE_ITEMS" ;;
+    Chores) printf '%s' "$G_CHORES_ITEMS" ;;
+    *) printf '%s' "$G_OTHER_ITEMS" ;;
+  esac
+}
+
+print_standup_summary() {
+  local cat count color repo subject hash noun
+  [[ "$FLAT" -eq 1 || "$TOTAL_COMMITS" -eq 0 ]] && return
+
+  # Single-repo smart mode already printed the grouped view — avoid duplication
+  # unless the user explicitly asked for --summary-only.
+  if [[ "$SUMMARY_ONLY" -eq 0 && "$PRINTED_REPOS" -le 1 ]]; then
+    return
+  fi
+
+  noun="commits"
+  [[ "$TOTAL_COMMITS" -eq 1 ]] && noun="commit"
+
+  printf '\n%sStandup summary%s %s· %s %s · %s%s\n' \
+    "$BOLD" "$RESET" "$DIM" "$TOTAL_COMMITS" "$noun" "$(timeframe_label)" "$RESET"
+  printf '%s%s%s\n' "$DIM" "────────────────────────────────────────" "$RESET"
+
+  for cat in "${CATEGORIES[@]}"; do
+    count="$(global_count_for_category "$cat")"
+    [[ "$count" -eq 0 ]] && continue
+    color="$(category_color "$cat")"
+    printf '  %s%s%s (%s)\n' "$BOLD$color" "$cat" "$RESET" "$count"
+
+    while IFS=$'\t' read -r repo subject hash; do
+      [[ -z "$hash" ]] && continue
+      if [[ "$PRINTED_REPOS" -gt 1 ]]; then
+        if [[ "$PLAIN" -eq 1 ]]; then
+          printf '    • %s: %s\n' "$repo" "$subject"
+        else
+          printf '    • %s%s%s: %s\n' "$DIM" "$repo" "$RESET" "$subject"
+        fi
+      else
+        format_bullet "$subject" "$hash"
+      fi
+    done <<< "$(global_items_for_category "$cat")"
+  done
+}
+
 # ---------------------------------------------------------------------------
 # Resolve target list (Cases A / B / C)
 # ---------------------------------------------------------------------------
@@ -172,7 +523,6 @@ REPOS=()
 REQUIRE_GIT_DIR=0
 
 if [[ ${#TARGETS[@]} -gt 0 ]]; then
-  # CASE A: specific targets (paths or names relative to cwd)
   REQUIRE_GIT_DIR=1
   for target in "${TARGETS[@]}"; do
     if [[ ! -d "$target" ]]; then
@@ -186,10 +536,8 @@ if [[ ${#TARGETS[@]} -gt 0 ]]; then
     REPOS+=("$target")
   done
 elif inside_git_repo "."; then
-  # CASE B: no args, inside a Git repo
   REPOS+=(".")
 else
-  # CASE C: no args, not in a repo — scan immediate subdirectories
   REQUIRE_GIT_DIR=1
   while IFS= read -r -d '' entry; do
     REPOS+=("$entry")
@@ -212,8 +560,9 @@ for repo in "${REPOS[@]}"; do
 done
 
 if [[ "$printed" -eq 0 ]]; then
-  printf '%sNo commits by %s%s%s since %s%s%s.\n' \
-    "$DIM" "$BOLD" "$AUTHOR" "$RESET$DIM" "$BOLD" "$SINCE" "$RESET"
+  printf '%sNo commits by %s%s%s %s%s.\n' "$DIM" "$BOLD" "$DISPLAY_AUTHOR" "$RESET$DIM" "$(timeframe_label)" "$RESET"
+else
+  print_standup_summary
 fi
 
 printf '\n'
