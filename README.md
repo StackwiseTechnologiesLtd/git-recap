@@ -24,14 +24,14 @@ It reads only from local `.git` state on disk. No SSH keys, no network, no remot
 ### Homebrew
 
 ```bash
-brew tap YOUR_GITHUB_USERNAME/tools
+brew tap StackwiseTechnologiesLtd/tools
 brew install git-recap
 ```
 
 ### From source
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/git-recap.git
+git clone https://github.com/StackwiseTechnologiesLtd/git-recap.git
 cd git-recap
 chmod +x bin/git-recap
 # optional: link onto your PATH
@@ -121,17 +121,25 @@ git config --global user.name "Your Name"
 
 ---
 
-## Homebrew formula notes
+## Maintaining the Homebrew formula
 
-`git-recap.rb` is the formula boilerplate. Before publishing a release:
+The install formula lives in [`homebrew-tools`](https://github.com/StackwiseTechnologiesLtd/homebrew-tools) as `Formula/git-recap.rb`. A copy is also kept in this repo as `git-recap.rb` for reference.
 
-1. Tag and push a release (e.g. `v0.1.0`)
-2. Compute the tarball SHA256 (see below)
-3. Replace `YOUR_GITHUB_USERNAME` and `PASTE_THE_SHA256_OF_YOUR_TAR_GZ_HERE` in the formula
-4. Copy the formula into your tap as `Formula/git-recap.rb`
+### Publishing a new version
+
+1. Merge to `main` and tag: `git tag vX.Y.Z && git push origin vX.Y.Z`
+2. Create a GitHub release (or `gh release create vX.Y.Z`)
+3. Compute the archive checksum:
+
+```bash
+curl -sL https://github.com/StackwiseTechnologiesLtd/git-recap/archive/refs/tags/vX.Y.Z.tar.gz | shasum -a 256
+```
+
+4. Update `url` + `sha256` in the tap formula and push `homebrew-tools`
+5. Users upgrade with `brew upgrade git-recap`
 
 ---
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
