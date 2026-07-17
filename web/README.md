@@ -53,8 +53,9 @@ web/
 
 ## UI notes
 
-* Floating glass navbar (`SiteHeader`)
-* Dark terminal showcases (`TerminalWindow`, `CopyCommand`)
+* Floating solid navbar (`SiteHeader`) — no glassmorphism
+* Dark terminal showcases (`TerminalWindow`, `CopyCommand`) without drop shadows
+* Feature rows: large terminal + explanation, stacked (not a 3-up grid)
 * Scroll reveal (`Reveal`) and animated logo (`AnimatedLogo`)
 * Respect `prefers-reduced-motion`
 

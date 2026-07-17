@@ -35,9 +35,13 @@ const heroLines = [
   },
 ];
 
-const featureTerminals = [
+const featureRows = [
   {
+    eyebrow: "Smart grouping",
+    title: "Grouped when you need it",
+    body: "Conventional commits and keyword heuristics sort your work into Features, Fixes, Docs, Refactors, and more — so standup answers are already categorized.",
     caption: "grouped when you need it",
+    reverse: false,
     lines: [
       { kind: "title" as const, text: "api-gateway · 3 commits · since midnight" },
       { kind: "dim" as const, text: "────────────────────────────────────────" },
@@ -49,7 +53,11 @@ const featureTerminals = [
     ],
   },
   {
+    eyebrow: "Multi-repo",
+    title: "Scanned across projects",
+    body: "Run from a parent folder or pass multiple paths. git-recap aggregates only the repositories where you actually shipped commits in the timeframe.",
     caption: "scanned across projects",
+    reverse: true,
     lines: [
       { kind: "title" as const, text: "Standup summary · 5 commits · since 1 day ago" },
       { kind: "dim" as const, text: "────────────────────────────────────────" },
@@ -61,7 +69,11 @@ const featureTerminals = [
     ],
   },
   {
+    eyebrow: "Paste-ready",
+    title: "Clean output for Slack and notes",
+    body: "Use --plain for no colors and no hashes, or --summary-only when you want just the standup block. Copy once, paste into the call.",
     caption: "paste-ready for Slack",
+    reverse: false,
     lines: [
       { kind: "title" as const, text: "my-app · 2 commits · since 1 day ago" },
       { kind: "dim" as const, text: "────────────────────────────────────────" },
@@ -146,10 +158,33 @@ export default function Home() {
               </p>
             </Reveal>
 
-            <div className="mt-14 grid gap-8 lg:grid-cols-3">
-              {featureTerminals.map((item, index) => (
-                <Reveal key={item.caption} delay={(index + 1) as 1 | 2 | 3}>
-                  <TerminalWindow lines={item.lines} caption={item.caption} />
+            <div className="mt-16 space-y-20 sm:mt-20 sm:space-y-28">
+              {featureRows.map((item) => (
+                <Reveal key={item.title}>
+                  <div
+                    className={`grid items-center gap-10 lg:grid-cols-2 lg:gap-16 ${
+                      item.reverse ? "" : ""
+                    }`}
+                  >
+                    <div className={item.reverse ? "lg:order-2" : ""}>
+                      <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
+                        {item.eyebrow}
+                      </p>
+                      <h3 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
+                        {item.title}
+                      </h3>
+                      <p className="mt-4 max-w-md text-base leading-relaxed text-muted">
+                        {item.body}
+                      </p>
+                    </div>
+                    <div className={item.reverse ? "lg:order-1" : ""}>
+                      <TerminalWindow
+                        lines={item.lines}
+                        caption={item.caption}
+                        className="mx-auto w-full max-w-xl lg:max-w-none"
+                      />
+                    </div>
+                  </div>
                 </Reveal>
               ))}
             </div>
@@ -321,7 +356,7 @@ ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
             </Reveal>
 
             <Reveal className="mx-auto mt-12 max-w-3xl" delay={1}>
-              <div className="overflow-hidden rounded-2xl border border-term-border bg-term-bg shadow-[0_16px_40px_rgba(0,0,0,0.14)]">
+              <div className="overflow-hidden rounded-2xl border border-term-border bg-term-bg">
                 <CommandRow cmd="git-recap" note="Current repo, or scan cwd subdirs" />
                 <CommandRow cmd="git-recap --today" note="Commits since midnight" />
                 <CommandRow cmd="git-recap --yesterday" note="Yesterday only" />

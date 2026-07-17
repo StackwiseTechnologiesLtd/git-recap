@@ -28,7 +28,7 @@ export function TerminalWindow({
 }: TerminalWindowProps) {
   return (
     <figure className={className}>
-      <div className="panel-hover overflow-hidden rounded-2xl border border-term-border bg-term-bg shadow-[0_20px_50px_rgba(0,0,0,0.18)]">
+      <div className="panel-hover overflow-hidden rounded-2xl border border-term-border bg-term-bg">
         <div className="flex items-center gap-2 border-b border-term-border bg-term-elevated px-4 py-3">
           <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
           <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />

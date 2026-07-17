@@ -15,14 +15,20 @@ export function SiteHeader() {
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6 sm:pt-5">
       <div className="animate-nav pointer-events-auto mx-auto max-w-5xl">
-        <div className="glass-nav rounded-2xl px-4 sm:px-5">
+        <div className="rounded-2xl border border-line-strong bg-bg px-4 sm:px-5">
           <div className="flex h-14 items-center justify-between">
             <a
               href="#"
               className="group flex items-center gap-2.5 font-semibold tracking-tight text-fg"
             >
-              <AnimatedLogo size={26} variant="nav" className="transition-transform duration-300 group-hover:scale-105" />
-              <span className="transition-colors group-hover:text-accent">git-recap</span>
+              <AnimatedLogo
+                size={26}
+                variant="nav"
+                className="transition-transform duration-300 group-hover:scale-105"
+              />
+              <span className="transition-colors group-hover:text-accent">
+                git-recap
+              </span>
             </a>
 
             <nav className="hidden items-center gap-7 text-sm text-muted md:flex">

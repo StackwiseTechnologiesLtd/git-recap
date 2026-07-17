@@ -22,7 +22,7 @@ export function CopyCommand({ command, className = "" }: CopyCommandProps) {
 
   return (
     <div
-      className={`flex items-stretch overflow-hidden rounded-xl border border-term-border bg-term-bg shadow-[0_12px_32px_rgba(0,0,0,0.14)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(0,0,0,0.18)] ${className}`}
+      className={`flex items-stretch overflow-hidden rounded-xl border border-term-border bg-term-bg transition-[transform,border-color] duration-300 hover:-translate-y-0.5 hover:border-white/20 ${className}`}
     >
       <pre className="flex-1 overflow-x-auto px-4 py-3.5 font-mono text-[13px] leading-relaxed text-term-fg sm:text-sm">
         <span className="text-term-prompt select-none">$ </span>
