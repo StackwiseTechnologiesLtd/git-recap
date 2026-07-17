@@ -1,8 +1,9 @@
-import Image from "next/image";
+import { AnimatedLogo } from "@/components/AnimatedLogo";
 import { CopyCommand } from "@/components/CopyCommand";
 import { Reveal } from "@/components/Reveal";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TerminalWindow } from "@/components/TerminalWindow";
+import Image from "next/image";
 
 const BREW_INSTALL =
   "brew tap StackwiseTechnologiesLtd/tools && brew trust StackwiseTechnologiesLtd/tools && brew install git-recap";
@@ -79,17 +80,10 @@ export default function Home() {
       <SiteHeader />
 
       <main className="relative">
-        <section className="mx-auto max-w-6xl px-5 pb-16 pt-14 sm:px-8 sm:pb-24 sm:pt-20">
+        <section className="mx-auto max-w-6xl px-5 pb-16 pt-28 sm:px-8 sm:pb-24 sm:pt-32">
           <div className="mx-auto max-w-3xl text-center">
             <div className="animate-rise flex flex-col items-center gap-4">
-              <Image
-                src="/logo.svg"
-                alt="git-recap"
-                width={72}
-                height={69}
-                className="animate-float h-16 w-auto sm:h-[4.5rem]"
-                priority
-              />
+              <AnimatedLogo size={80} className="sm:scale-110" />
               <p className="text-2xl font-semibold tracking-tight text-fg sm:text-3xl">
                 git-recap
               </p>
@@ -285,7 +279,7 @@ export default function Home() {
                   </div>
                   <p className="mt-5 text-sm leading-relaxed text-muted">
                     Modern Homebrew requires trusting third-party taps once. After that,{" "}
-                    <code className="rounded bg-accent-soft px-1.5 py-0.5 font-mono text-xs text-accent">
+                    <code className="rounded bg-bg-elevated px-1.5 py-0.5 font-mono text-xs text-fg">
                       brew upgrade git-recap
                     </code>{" "}
                     keeps you current.
@@ -298,12 +292,12 @@ export default function Home() {
                   <h3 className="text-xl font-semibold">From source</h3>
                   <p className="mt-5 text-sm leading-relaxed text-muted">
                     Clone the repo, make the script executable, and link it onto your{" "}
-                    <code className="rounded bg-accent-soft px-1.5 py-0.5 font-mono text-xs text-accent">
+                    <code className="rounded bg-bg-elevated px-1.5 py-0.5 font-mono text-xs text-fg">
                       PATH
                     </code>
                     .
                   </p>
-                  <pre className="mt-5 overflow-x-auto rounded-xl border border-line bg-bg-elevated p-4 font-mono text-[12px] leading-6 text-fg/90">
+                  <pre className="mt-5 overflow-x-auto rounded-xl border border-term-border bg-term-bg p-4 font-mono text-[12px] leading-6 text-term-fg">
 {`git clone https://github.com/StackwiseTechnologiesLtd/git-recap.git
 cd git-recap
 chmod +x bin/git-recap
@@ -327,7 +321,7 @@ ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
             </Reveal>
 
             <Reveal className="mx-auto mt-12 max-w-3xl" delay={1}>
-              <div className="overflow-hidden rounded-2xl border border-line-strong bg-bg-panel">
+              <div className="overflow-hidden rounded-2xl border border-term-border bg-term-bg shadow-[0_16px_40px_rgba(0,0,0,0.14)]">
                 <CommandRow cmd="git-recap" note="Current repo, or scan cwd subdirs" />
                 <CommandRow cmd="git-recap --today" note="Commits since midnight" />
                 <CommandRow cmd="git-recap --yesterday" note="Yesterday only" />
@@ -359,7 +353,7 @@ ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
         </section>
       </main>
 
-      <footer className="border-t border-line bg-bg-elevated/60">
+      <footer className="border-t border-line">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p className="flex items-center gap-2">
             <Image
@@ -454,12 +448,12 @@ function CommandRow({
 }) {
   return (
     <div
-      className={`flex flex-col gap-1 px-5 py-4 transition-colors hover:bg-accent-soft/60 sm:flex-row sm:items-center sm:justify-between sm:gap-6 ${
-        last ? "" : "border-b border-line"
+      className={`flex flex-col gap-1 px-5 py-4 transition-colors hover:bg-white/[0.04] sm:flex-row sm:items-center sm:justify-between sm:gap-6 ${
+        last ? "" : "border-b border-term-border"
       }`}
     >
-      <code className="font-mono text-[13px] text-accent">{cmd}</code>
-      <span className="text-sm text-muted">{note}</span>
+      <code className="font-mono text-[13px] text-term-green">{cmd}</code>
+      <span className="text-sm text-term-muted">{note}</span>
     </div>
   );
 }

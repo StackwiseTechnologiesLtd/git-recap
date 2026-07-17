@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
+import { AnimatedLogo } from "@/components/AnimatedLogo";
 
 const links = [
   { href: "#features", label: "features" },
@@ -13,80 +13,77 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-bg/85 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5 sm:h-16 sm:px-8">
-        <a
-          href="#"
-          className="group flex items-center gap-2.5 font-semibold tracking-tight text-fg"
-        >
-          <Image
-            src="/logo.svg"
-            alt=""
-            width={28}
-            height={27}
-            className="h-7 w-auto transition-transform duration-300 group-hover:-translate-y-0.5"
-            priority
-          />
-          <span className="transition-colors group-hover:text-accent">git-recap</span>
-        </a>
-
-        <nav className="hidden items-center gap-7 text-sm text-muted md:flex">
-          {links.map((link) => (
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6 sm:pt-5">
+      <div className="animate-nav pointer-events-auto mx-auto max-w-5xl">
+        <div className="glass-nav rounded-2xl px-4 sm:px-5">
+          <div className="flex h-14 items-center justify-between">
             <a
-              key={link.href}
-              href={link.href}
-              className="relative transition-colors hover:text-accent after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent after:transition-[width] after:duration-300 hover:after:w-full"
+              href="#"
+              className="group flex items-center gap-2.5 font-semibold tracking-tight text-fg"
             >
-              {link.label}
+              <AnimatedLogo size={26} variant="nav" className="transition-transform duration-300 group-hover:scale-105" />
+              <span className="transition-colors group-hover:text-accent">git-recap</span>
             </a>
-          ))}
-          <span className="h-4 w-px bg-line-strong" aria-hidden />
-          <a
-            href="https://github.com/StackwiseTechnologiesLtd/git-recap"
-            target="_blank"
-            rel="noreferrer"
-            className="transition-colors hover:text-accent"
-            aria-label="GitHub"
-          >
-            <GitHubIcon className="h-5 w-5" />
-          </a>
-        </nav>
 
-        <button
-          type="button"
-          className="rounded-lg border border-line-strong px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent/30 hover:text-accent md:hidden"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-label="Toggle menu"
-        >
-          Menu
-        </button>
-      </div>
-
-      {open ? (
-        <nav className="border-t border-line px-5 py-4 md:hidden">
-          <div className="flex flex-col gap-3 text-sm text-muted">
-            {links.map((link) => (
+            <nav className="hidden items-center gap-7 text-sm text-muted md:flex">
+              {links.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="relative transition-colors hover:text-accent after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent after:transition-[width] after:duration-300 hover:after:w-full"
+                >
+                  {link.label}
+                </a>
+              ))}
+              <span className="h-4 w-px bg-line-strong" aria-hidden />
               <a
-                key={link.href}
-                href={link.href}
-                className="hover:text-accent"
-                onClick={() => setOpen(false)}
+                href="https://github.com/StackwiseTechnologiesLtd/git-recap"
+                target="_blank"
+                rel="noreferrer"
+                className="transition-colors hover:text-accent"
+                aria-label="GitHub"
               >
-                {link.label}
+                <GitHubIcon className="h-5 w-5" />
               </a>
-            ))}
-            <a
-              href="https://github.com/StackwiseTechnologiesLtd/git-recap"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-accent"
+            </nav>
+
+            <button
+              type="button"
+              className="rounded-lg border border-line-strong px-3 py-1.5 text-sm text-muted transition-colors hover:text-fg md:hidden"
+              onClick={() => setOpen((v) => !v)}
+              aria-expanded={open}
+              aria-label="Toggle menu"
             >
-              GitHub
-            </a>
+              Menu
+            </button>
           </div>
-        </nav>
-      ) : null}
+
+          {open ? (
+            <nav className="border-t border-line pb-4 pt-2 md:hidden">
+              <div className="flex flex-col gap-3 text-sm text-muted">
+                {links.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className="hover:text-accent"
+                    onClick={() => setOpen(false)}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+                <a
+                  href="https://github.com/StackwiseTechnologiesLtd/git-recap"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-accent"
+                >
+                  GitHub
+                </a>
+              </div>
+            </nav>
+          ) : null}
+        </div>
+      </div>
     </header>
   );
 }

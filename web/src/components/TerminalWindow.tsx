@@ -13,10 +13,10 @@ type TerminalWindowProps = {
 };
 
 const toneClass = {
-  green: "text-green",
-  yellow: "text-yellow",
-  magenta: "text-magenta",
-  cyan: "text-cyan",
+  green: "text-term-green",
+  yellow: "text-term-yellow",
+  magenta: "text-term-magenta",
+  cyan: "text-term-cyan",
 } as const;
 
 export function TerminalWindow({
@@ -28,14 +28,14 @@ export function TerminalWindow({
 }: TerminalWindowProps) {
   return (
     <figure className={className}>
-      <div className="panel-hover overflow-hidden rounded-2xl border border-line-strong bg-bg-panel">
-        <div className="flex items-center gap-2 border-b border-line bg-bg-elevated px-4 py-3">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#d9d2cf]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#d9d2cf]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#d9d2cf]" />
-          <span className="ml-2 font-mono text-xs text-faint">{title}</span>
+      <div className="panel-hover overflow-hidden rounded-2xl border border-term-border bg-term-bg shadow-[0_20px_50px_rgba(0,0,0,0.18)]">
+        <div className="flex items-center gap-2 border-b border-term-border bg-term-elevated px-4 py-3">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+          <span className="ml-2 font-mono text-xs text-term-faint">{title}</span>
         </div>
-        <pre className="min-h-[220px] overflow-x-auto px-4 py-4 font-mono text-[12px] leading-6 text-fg sm:min-h-[260px] sm:px-5 sm:text-[13px]">
+        <pre className="min-h-[220px] overflow-x-auto px-4 py-4 font-mono text-[12px] leading-6 text-term-fg sm:min-h-[260px] sm:px-5 sm:text-[13px]">
           {lines.map((line, index) => {
             const lineStyle = animateLines
               ? {
@@ -45,14 +45,14 @@ export function TerminalWindow({
 
             if (line.kind === "dim") {
               return (
-                <div key={index} className="text-faint" style={lineStyle}>
+                <div key={index} className="text-term-faint" style={lineStyle}>
                   {line.text}
                 </div>
               );
             }
             if (line.kind === "title") {
               return (
-                <div key={index} className="font-medium text-accent" style={lineStyle}>
+                <div key={index} className="font-medium text-term-cyan" style={lineStyle}>
                   {line.text}
                 </div>
               );
@@ -69,17 +69,17 @@ export function TerminalWindow({
               );
             }
             return (
-              <div key={index} className="pl-3 text-fg/90" style={lineStyle}>
-                <span className="text-accent">• </span>
+              <div key={index} className="pl-3 text-term-fg/95" style={lineStyle}>
+                <span className="text-term-prompt">• </span>
                 {line.text}
                 {line.hash ? (
-                  <span className="text-faint"> ({line.hash})</span>
+                  <span className="text-term-faint"> ({line.hash})</span>
                 ) : null}
               </div>
             );
           })}
           {animateLines ? (
-            <div className="mt-2 pl-1 text-accent">
+            <div className="mt-2 pl-1 text-term-green">
               <span className="animate-caret">▌</span>
             </div>
           ) : null}

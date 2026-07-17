@@ -22,17 +22,17 @@ export function CopyCommand({ command, className = "" }: CopyCommandProps) {
 
   return (
     <div
-      className={`flex items-stretch overflow-hidden rounded-xl border border-line-strong bg-bg-elevated transition-[border-color,box-shadow] duration-300 hover:border-accent/30 hover:shadow-[0_10px_28px_rgba(84,17,17,0.08)] ${className}`}
+      className={`flex items-stretch overflow-hidden rounded-xl border border-term-border bg-term-bg shadow-[0_12px_32px_rgba(0,0,0,0.14)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(0,0,0,0.18)] ${className}`}
     >
-      <pre className="flex-1 overflow-x-auto px-4 py-3.5 font-mono text-[13px] leading-relaxed text-fg sm:text-sm">
-        <span className="text-accent select-none">$ </span>
+      <pre className="flex-1 overflow-x-auto px-4 py-3.5 font-mono text-[13px] leading-relaxed text-term-fg sm:text-sm">
+        <span className="text-term-prompt select-none">$ </span>
         {command}
       </pre>
       <button
         type="button"
         onClick={handleCopy}
         aria-label={copied ? "Copied" : "Copy install command"}
-        className="shrink-0 border-l border-line-strong px-4 text-sm font-medium text-muted transition-colors hover:bg-accent-soft hover:text-accent"
+        className="shrink-0 border-l border-term-border px-4 text-sm font-medium text-term-muted transition-colors hover:bg-white/5 hover:text-term-fg"
       >
         {copied ? "Copied" : "Copy"}
       </button>
