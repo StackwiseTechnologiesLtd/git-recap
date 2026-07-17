@@ -1,0 +1,298 @@
+import { CopyCommand } from "@/components/CopyCommand";
+import { SiteHeader } from "@/components/SiteHeader";
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Docs · git-recap",
+  description:
+    "Install, usage, timeframes, routing, and options for git-recap — the offline standup summary CLI.",
+};
+
+const BREW_INSTALL =
+  "brew tap StackwiseTechnologiesLtd/tools && brew trust StackwiseTechnologiesLtd/tools && brew install git-recap";
+
+const commands = [
+  { cmd: "git-recap", note: "Smart summary for the current repo, or scan cwd subdirs" },
+  { cmd: "git-recap project-a ~/code/app", note: "Specific targets" },
+  { cmd: "git-recap --today", note: "Commits since midnight" },
+  { cmd: "git-recap --yesterday", note: "Yesterday's commits only" },
+  { cmd: "git-recap --week", note: "Commits from the last week" },
+  { cmd: 'git-recap --since "2 days ago"', note: "Custom timeframe" },
+  { cmd: "git-recap --max-length 72", note: "Shorter standup bullets" },
+  { cmd: "git-recap --plain", note: "Paste into Slack / notes" },
+  { cmd: "git-recap --summary-only", note: "Only the standup summary block" },
+  { cmd: "git-recap --flat", note: "Raw commit list (no grouping)" },
+  { cmd: 'GIT_RECAP_SINCE="1 week ago" git-recap', note: "Timeframe via env" },
+  { cmd: "git-recap -h", note: "Help" },
+];
+
+const timeframes = [
+  { method: "Default", example: 'last 24 hours ("1 day ago")' },
+  { method: "Today", example: "git-recap --today" },
+  { method: "Yesterday", example: "git-recap --yesterday" },
+  { method: "Week", example: "git-recap --week" },
+  { method: "Flag", example: 'git-recap --since "3 days ago"' },
+  { method: "Env", example: 'GIT_RECAP_SINCE="1 week ago" git-recap' },
+];
+
+const routing = [
+  {
+    situation: "Paths/names passed as args",
+    behavior: "Process only those targets (skip if no .git)",
+  },
+  {
+    situation: "No args, inside a Git repo",
+    behavior: "Recap this repository only",
+  },
+  {
+    situation: "No args, not inside a repo",
+    behavior: "Scan immediate subdirectories for .git",
+  },
+];
+
+const options = [
+  {
+    flag: "-s, --since <when>",
+    desc: 'Commits since this date (default: "1 day ago" or $GIT_RECAP_SINCE)',
+  },
+  { flag: "--today", desc: 'Shortcut for --since "midnight"' },
+  {
+    flag: "--yesterday",
+    desc: 'Yesterday 00:00 to today 00:00',
+  },
+  { flag: "--week", desc: 'Shortcut for --since "1 week ago"' },
+  { flag: "--max-length <n>", desc: "Max summary bullet length (default: 88)" },
+  { flag: "-p, --plain", desc: "Paste-friendly output (no colors, no hashes)" },
+  { flag: "--summary-only", desc: "Only print the final standup summary block" },
+  { flag: "--flat", desc: "Skip smart grouping; print a flat commit list" },
+  { flag: "-h, --help", desc: "Show help" },
+];
+
+export default function DocsPage() {
+  return (
+    <div className="bg-atmosphere relative min-h-screen overflow-x-hidden">
+      <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
+      <SiteHeader />
+
+      <main className="relative mx-auto max-w-3xl px-5 pb-24 pt-28 sm:px-8 sm:pt-32">
+        <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
+          Documentation
+        </p>
+        <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+          git-recap docs
+        </h1>
+        <p className="mt-4 text-lg leading-relaxed text-muted">
+          Aggregate your local Git commit messages into standup-ready summaries.
+          Entirely offline — no remotes, no APIs, nothing leaves your machine.
+        </p>
+
+        <nav className="mt-10 flex flex-wrap gap-x-5 gap-y-2 border-b border-line pb-6 text-sm text-muted">
+          <a href="#install" className="hover:text-accent">
+            Install
+          </a>
+          <a href="#usage" className="hover:text-accent">
+            Usage
+          </a>
+          <a href="#timeframe" className="hover:text-accent">
+            Timeframe
+          </a>
+          <a href="#routing" className="hover:text-accent">
+            Routing
+          </a>
+          <a href="#options" className="hover:text-accent">
+            Options
+          </a>
+          <a href="#requirements" className="hover:text-accent">
+            Requirements
+          </a>
+        </nav>
+
+        <section id="install" className="scroll-mt-28 border-b border-line py-14">
+          <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
+          <p className="mt-3 text-muted">Homebrew (recommended):</p>
+          <div className="mt-5">
+            <CopyCommand command={BREW_INSTALL} />
+          </div>
+          <p className="mt-8 text-sm text-muted">
+            Modern Homebrew requires{" "}
+            <code className="font-mono text-xs text-fg/80">brew trust</code> for
+            third-party taps. Or install from source — see the{" "}
+            <a
+              href="https://github.com/StackwiseTechnologiesLtd/git-recap#from-source"
+              className="text-accent hover:underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub README
+            </a>
+            .
+          </p>
+        </section>
+
+        <section id="usage" className="scroll-mt-28 border-b border-line py-14">
+          <h2 className="text-2xl font-semibold tracking-tight">Usage</h2>
+          <p className="mt-3 text-muted">
+            Groups commits into Features, Fixes, Docs, Refactors, Tests,
+            Performance, Chores, and Other. Conventional prefixes like{" "}
+            <code className="font-mono text-xs text-fg/80">feat:</code> are
+            stripped; long subjects shorten at word boundaries.
+          </p>
+          <div className="mt-8 overflow-hidden rounded-2xl border border-term-border bg-term-bg">
+            {commands.map((item, i) => (
+              <div
+                key={item.cmd}
+                className={`flex flex-col gap-1 px-4 py-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 ${
+                  i < commands.length - 1 ? "border-b border-term-border" : ""
+                }`}
+              >
+                <code className="font-mono text-[13px] text-term-fg sm:text-sm">
+                  <span className="text-term-prompt select-none">$ </span>
+                  {item.cmd}
+                </code>
+                <span className="shrink-0 text-sm text-term-muted">{item.note}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="timeframe" className="scroll-mt-28 border-b border-line py-14">
+          <h2 className="text-2xl font-semibold tracking-tight">Timeframe</h2>
+          <p className="mt-3 text-muted">
+            Values pass through to{" "}
+            <code className="font-mono text-xs text-fg/80">git log --since</code>
+            , so any Git date expression works.{" "}
+            <code className="font-mono text-xs text-fg/80">--yesterday</code> uses{" "}
+            <code className="font-mono text-xs text-fg/80">
+              --since &quot;yesterday 00:00&quot; --until &quot;today 00:00&quot;
+            </code>
+            .
+          </p>
+          <DocTable
+            headers={["Method", "Example"]}
+            rows={timeframes.map((r) => [r.method, r.example])}
+          />
+        </section>
+
+        <section id="routing" className="scroll-mt-28 border-b border-line py-14">
+          <h2 className="text-2xl font-semibold tracking-tight">Routing</h2>
+          <p className="mt-3 text-muted">
+            Repositories with no commits by you in the timeframe are omitted.
+            Single-repo runs skip the duplicate standup summary block.
+          </p>
+          <DocTable
+            headers={["Situation", "Behavior"]}
+            rows={routing.map((r) => [r.situation, r.behavior])}
+          />
+        </section>
+
+        <section id="options" className="scroll-mt-28 border-b border-line py-14">
+          <h2 className="text-2xl font-semibold tracking-tight">Options</h2>
+          <ul className="mt-8 space-y-5">
+            {options.map((opt) => (
+              <li key={opt.flag}>
+                <code className="font-mono text-sm text-accent">{opt.flag}</code>
+                <p className="mt-1 text-sm leading-relaxed text-muted">{opt.desc}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section id="requirements" className="scroll-mt-28 py-14">
+          <h2 className="text-2xl font-semibold tracking-tight">Requirements</h2>
+          <ul className="mt-5 list-disc space-y-2 pl-5 text-muted">
+            <li>Bash</li>
+            <li>
+              Git with{" "}
+              <code className="font-mono text-xs text-fg/80">user.email</code> or{" "}
+              <code className="font-mono text-xs text-fg/80">user.name</code>{" "}
+              configured
+            </li>
+          </ul>
+          <pre className="mt-6 overflow-x-auto rounded-2xl border border-term-border bg-term-bg px-4 py-4 font-mono text-[13px] leading-relaxed text-term-fg sm:text-sm">
+            <span className="text-term-prompt select-none">$ </span>
+            git config --global user.email &quot;you@example.com&quot;{"\n"}
+            <span className="text-term-prompt select-none">$ </span>
+            git config --global user.name &quot;Your Name&quot;
+          </pre>
+          <p className="mt-8 text-sm text-muted">
+            Prefer reading on GitHub? Source and contributing notes live in the{" "}
+            <a
+              href="https://github.com/StackwiseTechnologiesLtd/git-recap"
+              className="text-accent hover:underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              repository
+            </a>
+            .
+          </p>
+        </section>
+      </main>
+
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <p className="flex items-center gap-2">
+            <Image
+              src="/logo.svg"
+              alt=""
+              width={18}
+              height={17}
+              className="h-4 w-auto"
+            />
+            <span>© {new Date().getFullYear()} git-recap</span>
+          </p>
+          <div className="flex flex-wrap gap-5">
+            <Link href="/" className="transition-colors hover:text-accent">
+              Home
+            </Link>
+            <Link href="/docs" className="transition-colors hover:text-accent">
+              Docs
+            </Link>
+            <a
+              href="https://github.com/StackwiseTechnologiesLtd/git-recap"
+              className="transition-colors hover:text-accent"
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub
+            </a>
+          </div>
+          <p className="text-faint">MIT licensed · Stackwise Technologies</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function DocTable({
+  headers,
+  rows,
+}: {
+  headers: [string, string];
+  rows: [string, string][];
+}) {
+  return (
+    <div className="mt-8 overflow-hidden rounded-2xl border border-line-strong">
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="border-b border-line-strong bg-bg-panel">
+            <th className="px-4 py-3 font-medium text-fg">{headers[0]}</th>
+            <th className="px-4 py-3 font-medium text-fg">{headers[1]}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(([a, b]) => (
+            <tr key={a} className="border-b border-line last:border-0">
+              <td className="px-4 py-3 align-top font-medium text-fg">{a}</td>
+              <td className="px-4 py-3 align-top font-mono text-[13px] text-muted">
+                {b}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

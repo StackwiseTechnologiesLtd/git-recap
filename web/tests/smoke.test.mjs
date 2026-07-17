@@ -12,6 +12,15 @@ test("landing page includes install and brand", () => {
   assert.match(page, /brew tap StackwiseTechnologiesLtd\/tools/);
   assert.match(page, /id="install"/);
   assert.match(page, /id="features"/);
+  assert.match(page, /\/docs/);
+});
+
+test("docs page covers usage and install", () => {
+  const page = readFileSync(join(root, "src/app/docs/page.tsx"), "utf8");
+  assert.match(page, /git-recap docs/);
+  assert.match(page, /id="install"/);
+  assert.match(page, /id="usage"/);
+  assert.match(page, /--summary-only/);
 });
 
 test("package scripts expose lint and build", () => {

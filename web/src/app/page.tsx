@@ -4,6 +4,7 @@ import { Reveal } from "@/components/Reveal";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TerminalWindow } from "@/components/TerminalWindow";
 import Image from "next/image";
+import Link from "next/link";
 
 const BREW_INSTALL =
   "brew tap StackwiseTechnologiesLtd/tools && brew trust StackwiseTechnologiesLtd/tools && brew install git-recap";
@@ -371,15 +372,10 @@ ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
             </Reveal>
 
             <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted">
-              Full docs live in the{" "}
-              <a
-                href="https://github.com/StackwiseTechnologiesLtd/git-recap#readme"
-                className="text-accent transition hover:underline"
-                target="_blank"
-                rel="noreferrer"
-              >
-                GitHub README
-              </a>
+              Full docs — install, timeframes, routing, and options — are on the{" "}
+              <Link href="/docs" className="text-accent transition hover:underline">
+                docs page
+              </Link>
               . Requires Bash and Git with{" "}
               <code className="font-mono text-xs text-fg/80">user.email</code> or{" "}
               <code className="font-mono text-xs text-fg/80">user.name</code> set.
@@ -401,9 +397,12 @@ ln -s "$(pwd)/bin/git-recap" /usr/local/bin/git-recap`}
             <span>© {new Date().getFullYear()} git-recap</span>
           </p>
           <div className="flex flex-wrap gap-5">
-            <a href="#" className="transition-colors hover:text-accent">
+            <Link href="/" className="transition-colors hover:text-accent">
               Home
-            </a>
+            </Link>
+            <Link href="/docs" className="transition-colors hover:text-accent">
+              Docs
+            </Link>
             <a
               href="https://github.com/StackwiseTechnologiesLtd/git-recap"
               className="transition-colors hover:text-accent"

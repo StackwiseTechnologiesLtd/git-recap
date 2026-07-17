@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 
 const links = [
-  { href: "#features", label: "features" },
-  { href: "#install", label: "install" },
-  { href: "#help", label: "help" },
+  { href: "/#features", label: "features" },
+  { href: "/#install", label: "install" },
+  { href: "/#help", label: "help" },
+  { href: "/docs", label: "docs" },
 ];
 
 export function SiteHeader() {
@@ -17,8 +19,8 @@ export function SiteHeader() {
       <div className="animate-nav pointer-events-auto mx-auto max-w-5xl">
         <div className="rounded-2xl border border-line-strong bg-bg px-4 sm:px-5">
           <div className="flex h-14 items-center justify-between">
-            <a
-              href="#"
+            <Link
+              href="/"
               className="group flex items-center gap-2.5 font-semibold tracking-tight text-fg"
             >
               <AnimatedLogo
@@ -29,17 +31,17 @@ export function SiteHeader() {
               <span className="transition-colors group-hover:text-accent">
                 git-recap
               </span>
-            </a>
+            </Link>
 
             <nav className="hidden items-center gap-7 text-sm text-muted md:flex">
               {links.map((link) => (
-                <a
+                <Link
                   key={link.href}
                   href={link.href}
                   className="relative transition-colors hover:text-accent after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent after:transition-[width] after:duration-300 hover:after:w-full"
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
               <span className="h-4 w-px bg-line-strong" aria-hidden />
               <a
@@ -68,14 +70,14 @@ export function SiteHeader() {
             <nav className="border-t border-line pb-4 pt-2 md:hidden">
               <div className="flex flex-col gap-3 text-sm text-muted">
                 {links.map((link) => (
-                  <a
+                  <Link
                     key={link.href}
                     href={link.href}
                     className="hover:text-accent"
                     onClick={() => setOpen(false)}
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 ))}
                 <a
                   href="https://github.com/StackwiseTechnologiesLtd/git-recap"
