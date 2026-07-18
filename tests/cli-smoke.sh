@@ -268,7 +268,7 @@ assert_match "$reviews_out" '"total_reviews"' "--json includes total_reviews"
 
 PATH="/usr/bin:/bin" "$SCRIPT" --today --reviews --json --author "Smoke Tester" \
   >"$TMPDIR_ROOT/reviews-nogh.out" 2>"$TMPDIR_ROOT/reviews-nogh.err" || true
-assert_match "$(cat "$TMPDIR_ROOT/reviews-nogh.err")" "gh not installed|brew install gh|gh auth login" \
+assert_match "$(cat "$TMPDIR_ROOT/reviews-nogh.err")" "gh not installed|brew install gh|gh auth login|interactive terminal" \
   "--reviews without gh prints setup guidance"
 assert_match "$(cat "$TMPDIR_ROOT/reviews-nogh.out")" '"total_reviews": 0' \
   "--reviews without gh still emits JSON with zero reviews"

@@ -902,95 +902,388 @@ review_verb_for_state() {
   esac
 }
 
-# Print setup guidance for --reviews prerequisites, then continue without reviews.
+reviews_is_tty() {
+  [[ -t 0 && -t 2 ]]
+}
+
+reviews_prompt() {
+  # $1 = prompt text. Reads a line from the terminal into REPLY_LINE.
+  local prompt="$1"
+  REPLY_LINE=""
+  if ! reviews_is_tty; then
+    return 1
+  fi
+  printf '%s' "$prompt" >&2
+  # Read from the controlling terminal so pipes/JSON don't eat input.
+  if [[ -r /dev/tty ]]; then
+    IFS= read -r REPLY_LINE < /dev/tty || return 1
+  else
+    IFS= read -r REPLY_LINE || return 1
+  fi
+  return 0
+}
+
+reviews_pause() {
+  local msg="${1:-Press Enter to continue… }"
+  reviews_prompt "$msg" || return 1
+  return 0
+}
+
+reviews_confirm() {
+  # Returns 0 if user answers y/yes (default y when empty and $2=y).
+  local prompt="$1" default="${2:-y}" answer
+  reviews_prompt "$prompt" || return 1
+  answer="$(printf '%s' "$REPLY_LINE" | tr '[:upper:]' '[:lower:]')"
+  if [[ -z "$answer" ]]; then
+    answer="$default"
+  fi
+  case "$answer" in
+    y|yes) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+reviews_gh_installed() {
+  command -v gh >/dev/null 2>&1
+}
+
+reviews_gh_authenticated() {
+  gh auth status >/dev/null 2>&1
+}
+
+reviews_gh_api_ok() {
+  local login
+  login="$(gh api user --jq .login 2>/dev/null || true)"
+  [[ -n "$login" ]]
+}
+
+reviews_python_ok() {
+  command -v python3 >/dev/null 2>&1
+}
+
+reviews_ssh_github_ok() {
+  # ssh -T exits 1 even on success; look for the success banner.
+  local out
+  out="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -T git@github.com 2>&1 || true)"
+  printf '%s' "$out" | grep -Eqi 'successfully authenticated|Hi [^!]+!'
+}
+
+reviews_find_ssh_pubkey() {
+  local key
+  for key in "$HOME/.ssh/id_ed25519.pub" "$HOME/.ssh/id_rsa.pub" "$HOME/.ssh/id_ecdsa.pub"; do
+    if [[ -f "$key" ]]; then
+      printf '%s' "$key"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Static guidance when stdin is not a TTY (CI, pipes, scripts).
 reviews_setup_help() {
   local reason="$1"
   echo "warning: --reviews skipped (${reason})." >&2
-  echo "  Commit recap continues below. To enable PR reviews:" >&2
-  case "$reason" in
-    "gh not installed")
-      cat >&2 <<'EOF'
-  1. Install the GitHub CLI:
-       macOS:  brew install gh
-       Linux:  https://github.com/cli/cli#installation
-  2. Sign in:
-       gh auth login
-  3. Re-run:
-       git-recap --reviews --today
+  echo "  Re-run in an interactive terminal to walk through setup, or:" >&2
+  cat >&2 <<'EOF'
+  • GitHub CLI (required for --reviews API access):
+      brew install gh
+      gh auth login
+      gh auth status
+  • SSH key (optional, for git@github.com remotes):
+      ssh-keygen -t ed25519 -C "you@example.com"
+      pbcopy < ~/.ssh/id_ed25519.pub   # or: cat ~/.ssh/id_ed25519.pub
+      # paste at https://github.com/settings/ssh/new
+      ssh -T git@github.com
+  Then: git-recap --reviews --today
 EOF
-      ;;
-    "gh not authenticated")
-      cat >&2 <<'EOF'
-  1. Sign in to GitHub (opens a browser / prompts for a token):
-       gh auth login
-     Prefer HTTPS + login via browser, or paste a classic/PAT with `repo` scope.
-  2. Confirm:
-       gh auth status
-  3. If the token expired or SSH/HTTPS remotes are unrelated — still run
-     `gh auth login` (reviews use the gh API token, not your git SSH key).
-  4. Re-run:
-       git-recap --reviews --today
-EOF
-      ;;
-    "python3 not installed")
-      cat >&2 <<'EOF'
-  1. Install Python 3 (used only to parse review timestamps):
-       macOS:  brew install python
-       Linux:  sudo apt install python3   # or your distro equivalent
-  2. Confirm:
-       python3 --version
-  3. Re-run:
-       git-recap --reviews --today
-EOF
-      ;;
-    "could not resolve gh user"|"failed to query GitHub")
-      cat >&2 <<'EOF'
-  1. Check auth and network:
-       gh auth status
-       gh api user --jq .login
-  2. Refresh a stale/expired token:
-       gh auth login
-       # or: gh auth refresh -h github.com -s repo
-  3. If you are offline or GitHub is unreachable, retry later.
-  4. Re-run:
-       git-recap --reviews --today
-EOF
-      ;;
-    *)
-      cat >&2 <<'EOF'
-  1. Ensure GitHub CLI is installed and signed in:
-       brew install gh   # if needed
-       gh auth login
-       gh auth status
-  2. Re-run:
-       git-recap --reviews --today
-EOF
+}
+
+reviews_setup_python() {
+  echo >&2
+  echo "==> Step: Python 3 (needed to parse review timestamps)" >&2
+  if reviews_python_ok; then
+    echo "    OK: $(python3 --version 2>&1)" >&2
+    return 0
+  fi
+  echo "    Python 3 is not installed." >&2
+  if command -v brew >/dev/null 2>&1; then
+    if reviews_confirm "    Install with Homebrew now? [Y/n] " y; then
+      brew install python || {
+        echo "    Install failed. Install Python 3 manually, then re-run." >&2
+        return 1
+      }
+    else
+      echo "    Install Python 3, then re-run this setup." >&2
+      echo "      brew install python" >&2
+      return 1
+    fi
+  else
+    echo "    Install Python 3 for your OS, then press Enter." >&2
+    reviews_pause "    Press Enter after installing… " || return 1
+  fi
+
+  if reviews_python_ok; then
+    echo "    OK: $(python3 --version 2>&1)" >&2
+    return 0
+  fi
+  echo "    Still missing python3. Aborting reviews setup." >&2
+  return 1
+}
+
+reviews_setup_gh() {
+  echo >&2
+  echo "==> Step: GitHub CLI (required for --reviews)" >&2
+  echo "    Reviews are fetched via the GitHub API using gh — not SSH alone." >&2
+
+  if ! reviews_gh_installed; then
+    echo "    gh is not installed." >&2
+    if command -v brew >/dev/null 2>&1; then
+      if reviews_confirm "    Install gh with Homebrew now? [Y/n] " y; then
+        brew install gh || {
+          echo "    brew install gh failed." >&2
+          return 1
+        }
+      else
+        echo "    Install manually, then continue:" >&2
+        echo "      brew install gh" >&2
+        echo "      # or: https://github.com/cli/cli#installation" >&2
+        reviews_pause "    Press Enter after installing gh… " || return 1
+      fi
+    else
+      echo "    Install gh from https://github.com/cli/cli#installation" >&2
+      reviews_pause "    Press Enter after installing gh… " || return 1
+    fi
+  fi
+
+  if ! reviews_gh_installed; then
+    echo "    VERIFY FAILED: gh still not on PATH." >&2
+    echo "    Open a new terminal or check: which gh" >&2
+    return 1
+  fi
+  echo "    OK: gh $(gh --version 2>/dev/null | head -1)" >&2
+
+  if reviews_gh_authenticated && reviews_gh_api_ok; then
+    echo "    OK: authenticated as $(gh api user --jq .login 2>/dev/null)" >&2
+    return 0
+  fi
+
+  echo "    Not signed in (or token expired)." >&2
+  echo "    Next: gh auth login  (browser or token; HTTPS is fine for reviews)." >&2
+  if reviews_confirm "    Run gh auth login now? [Y/n] " y; then
+    # Interactive login must talk to the real terminal.
+    if [[ -r /dev/tty && -w /dev/tty ]]; then
+      gh auth login < /dev/tty > /dev/tty 2>&1 || true
+    else
+      gh auth login || true
+    fi
+  else
+    echo "    Run: gh auth login" >&2
+    reviews_pause "    Press Enter after signing in… " || return 1
+  fi
+
+  if ! reviews_gh_authenticated; then
+    echo "    VERIFY FAILED: gh auth status is not logged in." >&2
+    echo "    Try: gh auth login   or   gh auth refresh -h github.com -s repo" >&2
+    return 1
+  fi
+  echo "    OK: gh auth status looks good." >&2
+
+  if ! reviews_gh_api_ok; then
+    echo "    VERIFY FAILED: could not call GitHub API (gh api user)." >&2
+    echo "    Check network, then: gh auth refresh -h github.com -s repo" >&2
+    return 1
+  fi
+  echo "    OK: API works — signed in as $(gh api user --jq .login 2>/dev/null)" >&2
+  return 0
+}
+
+reviews_setup_ssh() {
+  local pubkey email keyfile out
+
+  echo >&2
+  echo "==> Step: SSH key for GitHub (optional — for git clone/push via git@…)" >&2
+  echo "    Note: SSH does not replace gh for --reviews; it only unlocks SSH remotes." >&2
+
+  if reviews_ssh_github_ok; then
+    echo "    OK: ssh -T git@github.com already succeeds." >&2
+    return 0
+  fi
+
+  pubkey="$(reviews_find_ssh_pubkey || true)"
+  if [[ -z "$pubkey" ]]; then
+    echo "    No SSH public key found in ~/.ssh/." >&2
+    if reviews_confirm "    Generate a new ed25519 key now? [Y/n] " y; then
+      email=""
+      while [[ -z "$email" ]]; do
+        reviews_prompt "    Email for the key comment (e.g. you@example.com): " || return 1
+        email="$(printf '%s' "$REPLY_LINE" | tr -d '[:space:]')"
+        if [[ -z "$email" || "$email" != *@* ]]; then
+          echo "    Please enter a valid email." >&2
+          email=""
+        fi
+      done
+      keyfile="$HOME/.ssh/id_ed25519"
+      mkdir -p "$HOME/.ssh"
+      chmod 700 "$HOME/.ssh" 2>/dev/null || true
+      if [[ -f "$keyfile" ]]; then
+        echo "    $keyfile already exists — not overwriting." >&2
+      else
+        ssh-keygen -t ed25519 -f "$keyfile" -C "$email" -N "" || {
+          echo "    VERIFY FAILED: ssh-keygen error." >&2
+          return 1
+        }
+        echo "    OK: created $keyfile" >&2
+      fi
+      pubkey="${keyfile}.pub"
+    else
+      echo "    Skipping key generation." >&2
+      return 1
+    fi
+  else
+    echo "    OK: found public key $pubkey" >&2
+  fi
+
+  if [[ ! -f "$pubkey" ]]; then
+    echo "    VERIFY FAILED: public key file missing." >&2
+    return 1
+  fi
+
+  echo >&2
+  echo "    Add this public key on GitHub → SSH keys:" >&2
+  echo "      https://github.com/settings/ssh/new" >&2
+  echo "    ---- public key ----" >&2
+  cat "$pubkey" >&2
+  echo "    -------------------" >&2
+  if command -v pbcopy >/dev/null 2>&1; then
+    if reviews_confirm "    Copy the key to the clipboard with pbcopy? [Y/n] " y; then
+      pbcopy < "$pubkey" && echo "    OK: copied." >&2
+    fi
+  fi
+
+  while true; do
+    reviews_pause "    Press Enter after adding the key on GitHub (or type s to skip)… " || return 1
+    case "$(printf '%s' "$REPLY_LINE" | tr '[:upper:]' '[:lower:]')" in
+      s|skip) echo "    Skipped SSH verification." >&2; return 1 ;;
+    esac
+    echo "    Verifying: ssh -T git@github.com …" >&2
+    out="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -T git@github.com 2>&1 || true)"
+    printf '%s\n' "$out" | sed 's/^/      /' >&2
+    if printf '%s' "$out" | grep -Eqi 'successfully authenticated|Hi [^!]+!'; then
+      echo "    OK: GitHub SSH authentication works." >&2
+      return 0
+    fi
+    echo "    VERIFY FAILED: GitHub did not accept the key yet." >&2
+    echo "    Confirm the key is saved at https://github.com/settings/keys and try again." >&2
+    if ! reviews_confirm "    Retry verification? [Y/n] " y; then
+      return 1
+    fi
+  done
+}
+
+# Interactive wizard: choose GitHub CLI and/or SSH, verify every step.
+reviews_setup_wizard() {
+  local choice gh_ok=0 ssh_ok=0
+
+  echo >&2
+  echo "git-recap --reviews setup" >&2
+  echo "-------------------------" >&2
+  echo "PR reviews need the GitHub CLI (API). SSH is optional for git@ remotes." >&2
+  echo >&2
+  echo "  1) GitHub CLI only   (recommended — unlocks --reviews)" >&2
+  echo "  2) SSH key only      (git remotes; --reviews still needs gh)" >&2
+  echo "  3) Both" >&2
+  echo "  4) Skip reviews for now" >&2
+  echo >&2
+
+  while true; do
+    reviews_prompt "Choose 1-4: " || return 1
+    choice="$(printf '%s' "$REPLY_LINE" | tr -d '[:space:]')"
+    case "$choice" in
+      1|2|3|4) break ;;
+      *) echo "    Please enter 1, 2, 3, or 4." >&2 ;;
+    esac
+  done
+
+  case "$choice" in
+    4)
+      echo "    Skipping reviews setup." >&2
+      return 1
       ;;
   esac
+
+  reviews_setup_python || return 1
+
+  case "$choice" in
+    1)
+      reviews_setup_gh && gh_ok=1
+      ;;
+    2)
+      reviews_setup_ssh && ssh_ok=1
+      echo >&2
+      echo "    SSH alone cannot fetch PR reviews." >&2
+      if reviews_confirm "    Set up GitHub CLI now so --reviews works? [Y/n] " y; then
+        reviews_setup_gh && gh_ok=1
+      fi
+      ;;
+    3)
+      reviews_setup_gh && gh_ok=1
+      reviews_setup_ssh && ssh_ok=1
+      ;;
+  esac
+
+  echo >&2
+  echo "==> Setup summary" >&2
+  if reviews_python_ok; then echo "    python3: OK" >&2; else echo "    python3: MISSING" >&2; fi
+  if reviews_gh_installed && reviews_gh_authenticated && reviews_gh_api_ok; then
+    echo "    gh auth/API: OK ($(gh api user --jq .login 2>/dev/null))" >&2
+    gh_ok=1
+  else
+    echo "    gh auth/API: NOT READY" >&2
+    gh_ok=0
+  fi
+  if reviews_ssh_github_ok; then
+    echo "    SSH → GitHub: OK" >&2
+    ssh_ok=1
+  else
+    echo "    SSH → GitHub: not verified (optional)" >&2
+  fi
+
+  if [[ "$gh_ok" -eq 1 ]]; then
+    echo "    Ready for --reviews." >&2
+    return 0
+  fi
+  echo "    Not ready for --reviews yet (gh API still required)." >&2
+  return 1
+}
+
+reviews_ensure_ready() {
+  # Returns 0 when gh+python can fetch reviews.
+  if reviews_python_ok && reviews_gh_installed && reviews_gh_authenticated && reviews_gh_api_ok; then
+    return 0
+  fi
+
+  if ! reviews_is_tty; then
+    if ! reviews_gh_installed; then
+      reviews_setup_help "gh not installed (non-interactive)"
+    elif ! reviews_gh_authenticated; then
+      reviews_setup_help "gh not authenticated (non-interactive)"
+    elif ! reviews_python_ok; then
+      reviews_setup_help "python3 not installed (non-interactive)"
+    else
+      reviews_setup_help "GitHub API not reachable (non-interactive)"
+    fi
+    return 1
+  fi
+
+  echo "warning: --reviews needs a quick setup first." >&2
+  reviews_setup_wizard
 }
 
 # Fetch GitHub PR reviews for the authenticated gh user into the Reviews bucket.
 fetch_github_reviews() {
-  local from_iso to_iso from_day login payload auth_err
+  local from_iso to_iso from_day login payload
 
-  if ! command -v gh >/dev/null 2>&1; then
-    reviews_setup_help "gh not installed"
-    return 1
-  fi
-
-  auth_err="$(gh auth status 2>&1)" || {
-    if [[ -n "$auth_err" ]]; then
-      echo "warning: gh auth status:" >&2
-      printf '%s\n' "$auth_err" | sed 's/^/  /' >&2
-    fi
-    reviews_setup_help "gh not authenticated"
-    return 1
-  }
-
-  if ! command -v python3 >/dev/null 2>&1; then
-    reviews_setup_help "python3 not installed"
-    return 1
-  fi
+  reviews_ensure_ready || return 1
 
   from_iso="$(approxidate_to_iso "$SINCE" 2>/dev/null || true)"
   if [[ -z "$from_iso" ]]; then
@@ -1015,7 +1308,7 @@ fetch_github_reviews() {
 
   login="$(gh api user --jq .login 2>/dev/null || true)"
   if [[ -z "$login" ]]; then
-    reviews_setup_help "could not resolve gh user"
+    echo "warning: --reviews could not resolve the gh user after setup." >&2
     return 1
   fi
 
@@ -1039,8 +1332,33 @@ fetch_github_reviews() {
   )"
 
   if [[ -z "$payload" ]]; then
-    reviews_setup_help "failed to query GitHub"
-    return 1
+    if reviews_is_tty; then
+      echo "warning: GitHub query failed. Checking auth again…" >&2
+      if reviews_confirm "    Re-run gh auth login? [Y/n] " y; then
+        reviews_setup_gh || return 1
+        payload="$(
+          gh api graphql -f query="
+            query {
+              search(query: \"type:pr reviewed-by:${login} updated:>=${from_day}\", type: ISSUE, first: 50) {
+                nodes {
+                  ... on PullRequest {
+                    number
+                    title
+                    repository { name nameWithOwner }
+                    reviews(first: 40) {
+                      nodes { author { login } state submittedAt }
+                    }
+                  }
+                }
+              }
+            }" 2>/dev/null || true
+        )"
+      fi
+    fi
+    if [[ -z "$payload" ]]; then
+      reviews_setup_help "failed to query GitHub"
+      return 1
+    fi
   fi
 
   # Filter by review submittedAt (search only constrains PR updatedAt).

@@ -91,7 +91,7 @@ git-recap -V                       # version
 git-recap -h                       # help
 ```
 
-If `--reviews` is missing a dependency, git-recap still prints your commit recap and writes setup steps to stderr (install `gh`, run `gh auth login`, etc.).
+If `--reviews` is missing a dependency, an **interactive setup wizard** walks you through GitHub CLI and/or SSH key setup and verifies each step. In non-interactive environments (CI/pipes), it prints setup commands on stderr and continues with the commit recap only.
 
 ### Timeframe
 
