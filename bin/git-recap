@@ -1,18 +1,23 @@
 #!/usr/bin/env bash
 # git-recap — aggregate your local commit messages for standups.
 # Pure Bash + git; works entirely offline from local .git state.
+# Compatible with Bash 3.2+ (macOS).
 
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
 # Defaults / configuration
 # ---------------------------------------------------------------------------
+VERSION="0.1.1"
 SINCE="${GIT_RECAP_SINCE:-1 day ago}"
 UNTIL="${GIT_RECAP_UNTIL:-}"
 MAX_SUBJECT_LENGTH="${GIT_RECAP_MAX_SUBJECT_LENGTH:-88}"
 FLAT=0
 PLAIN=0
 SUMMARY_ONLY=0
+# auto | always | never — NO_COLOR forces never unless --color=always
+COLOR_MODE="${GIT_RECAP_COLOR:-auto}"
+AUTHOR_OVERRIDE="${GIT_RECAP_AUTHOR:-}"
 TARGETS=()
 CATEGORIES=(Features Fixes Docs Refactors Tests Performance Chores Other)
 
@@ -39,9 +44,14 @@ Options:
       --yesterday      Show yesterday's commits (yesterday 00:00 to today 00:00)
       --week           Shortcut for --since "1 week ago"
       --max-length <n> Max summary bullet length (default: 88)
+  -a, --author <who>   Override author match (default: git user.email / user.name
+                       or \$GIT_RECAP_AUTHOR)
   -p, --plain          Paste-friendly output (no colors, no hashes)
+      --color <when>   Colorize output: auto (default), always, or never
+                       (\$NO_COLOR implies never unless --color=always)
       --summary-only   Only print the final standup summary block
       --flat           Skip smart grouping; print a flat commit list
+  -V, --version        Print version and exit
   -h, --help           Show this help
 
 Examples:
@@ -52,6 +62,7 @@ Examples:
   git-recap --plain                  # copy into Slack / notes
   git-recap --summary-only           # just the standup block
   git-recap --flat                   # raw commit list
+  git-recap --author "Jane Doe"
 EOF_USAGE
 }
 
@@ -62,6 +73,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     -h|--help)
       usage
+      exit 0
+      ;;
+    -V|--version)
+      printf 'git-recap %s\n' "$VERSION"
       exit 0
       ;;
     -s|--since)
@@ -105,8 +120,32 @@ while [[ $# -gt 0 ]]; do
       MAX_SUBJECT_LENGTH="${1#*=}"
       shift
       ;;
+    -a|--author)
+      if [[ $# -lt 2 ]]; then
+        echo "error: $1 requires an argument" >&2
+        exit 1
+      fi
+      AUTHOR_OVERRIDE="$2"
+      shift 2
+      ;;
+    --author=*)
+      AUTHOR_OVERRIDE="${1#*=}"
+      shift
+      ;;
     -p|--plain)
       PLAIN=1
+      shift
+      ;;
+    --color)
+      if [[ $# -lt 2 ]]; then
+        echo "error: $1 requires an argument (auto|always|never)" >&2
+        exit 1
+      fi
+      COLOR_MODE="$2"
+      shift 2
+      ;;
+    --color=*)
+      COLOR_MODE="${1#*=}"
       shift
       ;;
     --summary-only)
@@ -150,10 +189,31 @@ if [[ "$FLAT" -eq 1 && "$SUMMARY_ONLY" -eq 1 ]]; then
   exit 1
 fi
 
+case "$COLOR_MODE" in
+  auto|always|never) ;;
+  *)
+    echo "error: --color must be auto, always, or never" >&2
+    exit 1
+    ;;
+esac
+
 # ---------------------------------------------------------------------------
-# Colors (TTY only, unless --plain)
+# Colors (TTY / --color / NO_COLOR / --plain)
 # ---------------------------------------------------------------------------
-if [[ "$PLAIN" -eq 0 && -t 1 ]]; then
+use_color=0
+if [[ "$PLAIN" -eq 0 ]]; then
+  if [[ "$COLOR_MODE" == "always" ]]; then
+    use_color=1
+  elif [[ "$COLOR_MODE" == "never" ]]; then
+    use_color=0
+  elif [[ -n "${NO_COLOR:-}" ]]; then
+    use_color=0
+  elif [[ -t 1 ]]; then
+    use_color=1
+  fi
+fi
+
+if [[ "$use_color" -eq 1 ]]; then
   BOLD=$'\033[1m'
   DIM=$'\033[2m'
   CYAN=$'\033[36m'
@@ -169,18 +229,32 @@ fi
 # ---------------------------------------------------------------------------
 # Author lookup
 # ---------------------------------------------------------------------------
+# Escape a string for git's --author regex matching.
+escape_author_regex() {
+  # Prefix regex metacharacters with a backslash.
+  printf '%s' "$1" | sed -e 's/[][\.*^$+?(){}|]/\\&/g'
+}
+
 AUTHOR_NAME="$(git config user.name 2>/dev/null || true)"
 AUTHOR_EMAIL="$(git config user.email 2>/dev/null || true)"
-AUTHOR_PATTERN="${AUTHOR_EMAIL:-$AUTHOR_NAME}"
-DISPLAY_AUTHOR="${AUTHOR_NAME:-$AUTHOR_EMAIL}"
+
+if [[ -n "$AUTHOR_OVERRIDE" ]]; then
+  AUTHOR_PATTERN="$AUTHOR_OVERRIDE"
+  DISPLAY_AUTHOR="$AUTHOR_OVERRIDE"
+else
+  AUTHOR_PATTERN="${AUTHOR_EMAIL:-$AUTHOR_NAME}"
+  DISPLAY_AUTHOR="${AUTHOR_NAME:-$AUTHOR_EMAIL}"
+fi
 
 if [[ -z "$AUTHOR_PATTERN" ]]; then
   echo "error: git config user.email or git config user.name is not set" >&2
   echo "  run: git config --global user.email \"you@example.com\"" >&2
   echo "  or:  git config --global user.name \"Your Name\"" >&2
+  echo "  or:  git-recap --author \"Your Name\"" >&2
   exit 1
 fi
 
+AUTHOR_REGEX="$(escape_author_regex "$AUTHOR_PATTERN")"
 # ---------------------------------------------------------------------------
 # Classification and formatting
 # ---------------------------------------------------------------------------
@@ -305,13 +379,21 @@ inside_git_repo() {
 
 log_commits() {
   local git_dir="$1"
-  local -a args
-  args=(log --author="$AUTHOR_PATTERN" --since="$SINCE")
+  # Avoid `local -a` assignment quirks; build argv inline for Bash 3.2.
   if [[ -n "$UNTIL" ]]; then
-    args+=(--until="$UNTIL")
+    git -C "$git_dir" log \
+      --author="$AUTHOR_REGEX" \
+      --since="$SINCE" \
+      --until="$UNTIL" \
+      --pretty=format:%h%x09%s \
+      --no-merges 2>/dev/null || true
+  else
+    git -C "$git_dir" log \
+      --author="$AUTHOR_REGEX" \
+      --since="$SINCE" \
+      --pretty=format:%h%x09%s \
+      --no-merges 2>/dev/null || true
   fi
-  args+=(--pretty=format:%h%x09%s --no-merges)
-  git -C "$git_dir" "${args[@]}" 2>/dev/null || true
 }
 
 add_local_item() {
@@ -384,8 +466,9 @@ recap_repo() {
   label="$(basename "$git_dir")"
 
   # Collect first so we can show an accurate commit count in the header.
-  while IFS=$'\t' read -r hash subject; do
-    [[ -z "$hash" ]] && continue
+  # `|| [[ -n ... ]]` keeps the last line when pretty-format omits a trailing newline.
+  while IFS=$'\t' read -r hash subject || [[ -n "${hash:-}" ]]; do
+    [[ -z "${hash:-}" ]] && continue
     cat="$(classify_commit "$subject")"
     cleaned="$(clean_subject "$subject")"
     short="$(shorten_subject "$cleaned")"
@@ -398,6 +481,8 @@ recap_repo() {
       item="${short}"$'\t'"${hash}"$'\n'
     fi
     add_local_item "$cat" "$item"
+    hash=''
+    subject=''
   done <<< "$commits"
 
   PRINTED_REPOS=$((PRINTED_REPOS + 1))
@@ -414,13 +499,15 @@ recap_repo() {
   printf '%s%s%s\n' "$DIM" "────────────────────────────────────────" "$RESET"
 
   if [[ "$FLAT" -eq 1 ]]; then
-    while IFS=$'\t' read -r hash subject; do
-      [[ -z "$hash" ]] && continue
+    while IFS=$'\t' read -r hash subject || [[ -n "${hash:-}" ]]; do
+      [[ -z "${hash:-}" ]] && continue
       if [[ "$PLAIN" -eq 1 ]]; then
         printf '  • %s\n' "$subject"
       else
         printf '  • %s (%s%s%s)\n' "$subject" "$DIM" "$hash" "$RESET"
       fi
+      hash=''
+      subject=''
     done <<< "$commits"
     return 0
   fi
@@ -431,9 +518,11 @@ recap_repo() {
     color="$(category_color "$cat")"
     printf '  %s%s%s (%s)\n' "$BOLD$color" "$cat" "$RESET" "$count"
 
-    while IFS=$'\t' read -r subject hash; do
-      [[ -z "$hash" ]] && continue
+    while IFS=$'\t' read -r subject hash || [[ -n "${hash:-}" ]]; do
+      [[ -z "${hash:-}" ]] && continue
       format_bullet "$subject" "$hash"
+      hash=''
+      subject=''
     done <<< "$(items_for_category "$cat")"
   done
 
@@ -501,8 +590,8 @@ print_standup_summary() {
     color="$(category_color "$cat")"
     printf '  %s%s%s (%s)\n' "$BOLD$color" "$cat" "$RESET" "$count"
 
-    while IFS=$'\t' read -r repo subject hash; do
-      [[ -z "$hash" ]] && continue
+    while IFS=$'\t' read -r repo subject hash || [[ -n "${hash:-}" ]]; do
+      [[ -z "${hash:-}" ]] && continue
       if [[ "$PRINTED_REPOS" -gt 1 ]]; then
         if [[ "$PLAIN" -eq 1 ]]; then
           printf '    • %s: %s\n' "$repo" "$subject"
@@ -512,6 +601,9 @@ print_standup_summary() {
       else
         format_bullet "$subject" "$hash"
       fi
+      hash=''
+      subject=''
+      repo=''
     done <<< "$(global_items_for_category "$cat")"
   done
 }

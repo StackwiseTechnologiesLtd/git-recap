@@ -1,8 +1,7 @@
-<p align="center">
-  <img src="docs/logo.svg" alt="git-recap logo" width="96" height="92" />
-</p>
-
-<h1 align="center">git-recap</h1>
+<h1 align="center">
+  <img src="docs/logo.svg" alt="" width="56" height="54" />
+  git-recap
+</h1>
 
 <p align="center">
   A lightweight, zero-dependency CLI that aggregates your local Git commit messages over a timeframe so you can prepare for daily standups in seconds.
@@ -67,11 +66,14 @@ git-recap --today                  # commits since midnight
 git-recap --yesterday              # yesterday's commits
 git-recap --week                   # commits from the last week
 git-recap --since "2 days ago"     # custom timeframe
+git-recap --author "Jane Doe"      # override author match
 git-recap --max-length 72          # shorter standup bullets
 git-recap --plain                  # paste into Slack / notes
+git-recap --color never            # force no ANSI colors
 git-recap --summary-only           # only the standup summary block
 git-recap --flat                   # raw commit list
 GIT_RECAP_SINCE="1 week ago" git-recap
+git-recap -V                       # version
 git-recap -h                       # help
 ```
 

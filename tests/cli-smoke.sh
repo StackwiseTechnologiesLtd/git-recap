@@ -93,15 +93,16 @@ assert_match "$help_out" "--plain" "--help documents --plain"
 assert_match "$help_out" "--summary-only" "--help documents --summary-only"
 assert_match "$help_out" "--flat" "--help documents --flat"
 assert_match "$help_out" "--max-length" "--help documents --max-length"
-assert_match "$help_out" "--since" "--help documents --since"
+assert_match "$help_out" "--author" "--help documents --author"
+assert_match "$help_out" "--color" "--help documents --color"
+assert_match "$help_out" "--version" "--help documents --version"
 
-h_out="$("$SCRIPT" -h)"
-assert_match "$h_out" "Usage: git-recap" "-h shows Usage"
+version_out="$("$SCRIPT" --version)"
+assert_match "$version_out" "git-recap 0\\.1\\." "--version prints version"
 
-assert_exit 1 "$SCRIPT" --not-a-real-flag
-assert_exit 1 "$SCRIPT" --since
-assert_exit 1 "$SCRIPT" --max-length
-assert_exit 1 "$SCRIPT" --flat --summary-only
+assert_exit 1 "$SCRIPT" --color
+assert_exit 1 "$SCRIPT" --color maybe
+assert_exit 1 "$SCRIPT" --author
 
 # ---------------------------------------------------------------------------
 # Functional fixtures (isolated git identity via temp global config)
@@ -133,8 +134,18 @@ init_repo() {
 init_repo "$REPO_A" "feat: add alpha dashboard"
 init_repo "$REPO_B" "fix: repair beta auth tokens"
 
-# Single-repo run (inside alpha)
+# Author override + NO_COLOR / --color
 cd "$REPO_A"
+author_out="$("$SCRIPT" --today --author "Smoke Tester")"
+assert_match "$author_out" "Features|dashboard" "--author finds matching commits"
+
+nocolor_out="$(NO_COLOR=1 "$SCRIPT" --today --color=auto)"
+assert_no_match "$nocolor_out" $'\033\[' "NO_COLOR disables ANSI"
+
+force_color_out="$(NO_COLOR=1 "$SCRIPT" --today --color=always)"
+assert_match "$force_color_out" $'\033\[' "--color=always overrides NO_COLOR"
+
+# Single-repo run (inside alpha)
 today_out="$("$SCRIPT" --today)"
 assert_match "$today_out" "Features|add alpha dashboard" "--today groups feature commit"
 assert_match "$today_out" "alpha|dashboard" "--today mentions repo or subject"
