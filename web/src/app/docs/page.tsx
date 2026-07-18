@@ -19,11 +19,18 @@ const commands = [
   { cmd: "git-recap --yesterday", note: "Yesterday's commits only" },
   { cmd: "git-recap --week", note: "Commits from the last week" },
   { cmd: 'git-recap --since "2 days ago"', note: "Custom timeframe" },
+  { cmd: 'git-recap --since "3 days ago" --until yesterday', note: "Bounded window" },
+  { cmd: 'git-recap --author "Jane Doe"', note: "Override author match" },
+  { cmd: "git-recap --all-authors --today", note: "Every author in the window" },
   { cmd: "git-recap --max-length 72", note: "Shorter standup bullets" },
   { cmd: "git-recap --plain", note: "Paste into Slack / notes" },
   { cmd: "git-recap --summary-only", note: "Only the standup summary block" },
   { cmd: "git-recap --flat", note: "Raw commit list (no grouping)" },
+  { cmd: "git-recap --include-merges", note: "Keep merge commits" },
+  { cmd: "git-recap -r --today", note: "Deep-scan folders for repos" },
+  { cmd: "git-recap --json --today", note: "Machine-readable summary" },
   { cmd: 'GIT_RECAP_SINCE="1 week ago" git-recap', note: "Timeframe via env" },
+  { cmd: "git-recap -V", note: "Version" },
   { cmd: "git-recap -h", note: "Help" },
 ];
 
@@ -33,6 +40,7 @@ const timeframes = [
   { method: "Yesterday", example: "git-recap --yesterday" },
   { method: "Week", example: "git-recap --week" },
   { method: "Flag", example: 'git-recap --since "3 days ago"' },
+  { method: "Until", example: 'git-recap --until yesterday' },
   { method: "Env", example: 'GIT_RECAP_SINCE="1 week ago" git-recap' },
 ];
 
@@ -47,7 +55,7 @@ const routing = [
   },
   {
     situation: "No args, not inside a repo",
-    behavior: "Scan immediate subdirectories for .git",
+    behavior: "Scan immediate subdirectories for .git (use -r for deep scan)",
   },
 ];
 
@@ -56,16 +64,42 @@ const options = [
     flag: "-s, --since <when>",
     desc: 'Commits since this date (default: "1 day ago" or $GIT_RECAP_SINCE)',
   },
+  {
+    flag: "-u, --until <when>",
+    desc: "Commits until this date (optional; or $GIT_RECAP_UNTIL)",
+  },
   { flag: "--today", desc: 'Shortcut for --since "midnight"' },
   {
     flag: "--yesterday",
-    desc: 'Yesterday 00:00 to today 00:00',
+    desc: "Yesterday 00:00 to today 00:00",
   },
   { flag: "--week", desc: 'Shortcut for --since "1 week ago"' },
   { flag: "--max-length <n>", desc: "Max summary bullet length (default: 88)" },
+  {
+    flag: "-a, --author <who>",
+    desc: "Override author match (default: git user.email / user.name)",
+  },
+  {
+    flag: "-A, --all-authors",
+    desc: "Include commits from every author",
+  },
   { flag: "-p, --plain", desc: "Paste-friendly output (no colors, no hashes)" },
+  {
+    flag: "--color <when>",
+    desc: "Colorize output: auto (default), always, or never",
+  },
   { flag: "--summary-only", desc: "Only print the final standup summary block" },
   { flag: "--flat", desc: "Skip smart grouping; print a flat commit list" },
+  {
+    flag: "-r, --recursive",
+    desc: "Deep-scan folders for Git repos (skips vendor/build trees)",
+  },
+  {
+    flag: "--include-merges",
+    desc: "Include merge commits (omitted by default)",
+  },
+  { flag: "--json", desc: "Machine-readable JSON summary" },
+  { flag: "-V, --version", desc: "Print version and exit" },
   { flag: "-h, --help", desc: "Show help" },
 ];
 

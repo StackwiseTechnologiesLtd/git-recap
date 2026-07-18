@@ -17,6 +17,8 @@ PLAIN=0
 SUMMARY_ONLY=0
 RECURSIVE=0
 JSON=0
+ALL_AUTHORS=0
+INCLUDE_MERGES=0
 # auto | always | never — NO_COLOR forces never unless --color=always
 COLOR_MODE="${GIT_RECAP_COLOR:-auto}"
 AUTHOR_OVERRIDE="${GIT_RECAP_AUTHOR:-}"
@@ -42,12 +44,14 @@ Works entirely offline from local .git state.
 Options:
   -s, --since <when>   Commits since this date (default: "1 day ago"
                        or \$GIT_RECAP_SINCE)
+  -u, --until <when>   Commits until this date (optional; or \$GIT_RECAP_UNTIL)
       --today          Shortcut for --since "midnight"
       --yesterday      Show yesterday's commits (yesterday 00:00 to today 00:00)
       --week           Shortcut for --since "1 week ago"
       --max-length <n> Max summary bullet length (default: 88)
   -a, --author <who>   Override author match (default: git user.email / user.name
                        or \$GIT_RECAP_AUTHOR)
+  -A, --all-authors    Include commits from every author (ignore author filter)
   -p, --plain          Paste-friendly output (no colors, no hashes)
       --color <when>   Colorize output: auto (default), always, or never
                        (\$NO_COLOR implies never unless --color=always)
@@ -55,6 +59,7 @@ Options:
       --flat           Skip smart grouping; print a flat commit list
   -r, --recursive      When scanning a folder, find Git repos at any depth
                        (skips node_modules, vendor, .terraform, dist, build)
+      --include-merges Include merge commits (omitted by default)
       --json           Machine-readable JSON summary (implies no color)
   -V, --version        Print version and exit
   -h, --help           Show this help
@@ -64,10 +69,12 @@ Examples:
   git-recap project-a ~/code/app     # specific targets
   git-recap --today
   git-recap --yesterday
+  git-recap --since "3 days ago" --until yesterday
   git-recap --plain                  # copy into Slack / notes
   git-recap --summary-only           # just the standup block
   git-recap --flat                   # raw commit list
   git-recap --author "Jane Doe"
+  git-recap --all-authors --today    # whole-team window
   git-recap -r --today               # deep-scan cwd for repos
   git-recap --json --today           # script-friendly output
 EOF_USAGE
@@ -92,17 +99,27 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       SINCE="$2"
-      UNTIL="${GIT_RECAP_UNTIL:-}"
       shift 2
       ;;
     --since=*)
       SINCE="${1#*=}"
-      UNTIL="${GIT_RECAP_UNTIL:-}"
+      shift
+      ;;
+    -u|--until)
+      if [[ $# -lt 2 ]]; then
+        echo "error: $1 requires an argument" >&2
+        exit 1
+      fi
+      UNTIL="$2"
+      shift 2
+      ;;
+    --until=*)
+      UNTIL="${1#*=}"
       shift
       ;;
     --today)
       SINCE="midnight"
-      UNTIL="${GIT_RECAP_UNTIL:-}"
+      UNTIL=""
       shift
       ;;
     --yesterday)
@@ -112,7 +129,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --week)
       SINCE="1 week ago"
-      UNTIL="${GIT_RECAP_UNTIL:-}"
+      UNTIL=""
       shift
       ;;
     --max-length)
@@ -133,10 +150,17 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       AUTHOR_OVERRIDE="$2"
+      ALL_AUTHORS=0
       shift 2
       ;;
     --author=*)
       AUTHOR_OVERRIDE="${1#*=}"
+      ALL_AUTHORS=0
+      shift
+      ;;
+    -A|--all-authors)
+      ALL_AUTHORS=1
+      AUTHOR_OVERRIDE=""
       shift
       ;;
     -p|--plain)
@@ -165,6 +189,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     -r|--recursive)
       RECURSIVE=1
+      shift
+      ;;
+    --include-merges)
+      INCLUDE_MERGES=1
       shift
       ;;
     --json)
@@ -263,23 +291,26 @@ escape_author_regex() {
 AUTHOR_NAME="$(git config user.name 2>/dev/null || true)"
 AUTHOR_EMAIL="$(git config user.email 2>/dev/null || true)"
 
-if [[ -n "$AUTHOR_OVERRIDE" ]]; then
+if [[ "$ALL_AUTHORS" -eq 1 ]]; then
+  AUTHOR_REGEX=""
+  DISPLAY_AUTHOR="all authors"
+elif [[ -n "$AUTHOR_OVERRIDE" ]]; then
   AUTHOR_PATTERN="$AUTHOR_OVERRIDE"
   DISPLAY_AUTHOR="$AUTHOR_OVERRIDE"
+  AUTHOR_REGEX="$(escape_author_regex "$AUTHOR_PATTERN")"
 else
   AUTHOR_PATTERN="${AUTHOR_EMAIL:-$AUTHOR_NAME}"
   DISPLAY_AUTHOR="${AUTHOR_NAME:-$AUTHOR_EMAIL}"
+  if [[ -z "$AUTHOR_PATTERN" ]]; then
+    echo "error: git config user.email or git config user.name is not set" >&2
+    echo "  run: git config --global user.email \"you@example.com\"" >&2
+    echo "  or:  git config --global user.name \"Your Name\"" >&2
+    echo "  or:  git-recap --author \"Your Name\"" >&2
+    echo "  or:  git-recap --all-authors" >&2
+    exit 1
+  fi
+  AUTHOR_REGEX="$(escape_author_regex "$AUTHOR_PATTERN")"
 fi
-
-if [[ -z "$AUTHOR_PATTERN" ]]; then
-  echo "error: git config user.email or git config user.name is not set" >&2
-  echo "  run: git config --global user.email \"you@example.com\"" >&2
-  echo "  or:  git config --global user.name \"Your Name\"" >&2
-  echo "  or:  git-recap --author \"Your Name\"" >&2
-  exit 1
-fi
-
-AUTHOR_REGEX="$(escape_author_regex "$AUTHOR_PATTERN")"
 # ---------------------------------------------------------------------------
 # Classification and formatting
 # ---------------------------------------------------------------------------
@@ -415,21 +446,19 @@ inside_git_repo() {
 
 log_commits() {
   local git_dir="$1"
-  # Avoid `local -a` assignment quirks; build argv inline for Bash 3.2.
-  if [[ -n "$UNTIL" ]]; then
-    git -C "$git_dir" log \
-      --author="$AUTHOR_REGEX" \
-      --since="$SINCE" \
-      --until="$UNTIL" \
-      --pretty=format:%h%x09%s \
-      --no-merges 2>/dev/null || true
-  else
-    git -C "$git_dir" log \
-      --author="$AUTHOR_REGEX" \
-      --since="$SINCE" \
-      --pretty=format:%h%x09%s \
-      --no-merges 2>/dev/null || true
+  # Build git log args without `local -a` quirks on Bash 3.2.
+  local args=(log --pretty=format:%h%x09%s)
+  if [[ -n "$AUTHOR_REGEX" ]]; then
+    args+=(--author="$AUTHOR_REGEX")
   fi
+  args+=(--since="$SINCE")
+  if [[ -n "$UNTIL" ]]; then
+    args+=(--until="$UNTIL")
+  fi
+  if [[ "$INCLUDE_MERGES" -eq 0 ]]; then
+    args+=(--no-merges)
+  fi
+  git -C "$git_dir" "${args[@]}" 2>/dev/null || true
 }
 
 add_local_item() {
@@ -608,11 +637,17 @@ json_escape() {
 
 print_json() {
   local cat count first_cat=1 first_item repo subject hash
+  local all_authors_json="false" include_merges_json="false"
+  [[ "$ALL_AUTHORS" -eq 1 ]] && all_authors_json="true"
+  [[ "$INCLUDE_MERGES" -eq 1 ]] && include_merges_json="true"
+
   printf '{\n'
   printf '  "version": "%s",\n' "$(json_escape "$VERSION")"
   printf '  "author": "%s",\n' "$(json_escape "$DISPLAY_AUTHOR")"
+  printf '  "all_authors": %s,\n' "$all_authors_json"
   printf '  "since": "%s",\n' "$(json_escape "$SINCE")"
   printf '  "until": "%s",\n' "$(json_escape "$UNTIL")"
+  printf '  "include_merges": %s,\n' "$include_merges_json"
   printf '  "timeframe": "%s",\n' "$(json_escape "$(timeframe_label)")"
   printf '  "total_commits": %s,\n' "$TOTAL_COMMITS"
   printf '  "repos_with_commits": %s,\n' "$PRINTED_REPOS"
@@ -725,6 +760,33 @@ print_standup_summary() {
 REPOS=()
 REQUIRE_GIT_DIR=0
 
+# Canonical absolute path for deduplication (Bash 3.2-safe).
+canonical_path() {
+  local path="$1"
+  if [[ -d "$path" ]]; then
+    (cd "$path" && pwd)
+  else
+    printf '%s' "$path"
+  fi
+}
+
+repo_already_queued() {
+  local candidate="$1" existing
+  for existing in "${REPOS[@]+"${REPOS[@]}"}"; do
+    [[ "$existing" == "$candidate" ]] && return 0
+  done
+  return 1
+}
+
+queue_repo() {
+  local path="$1" canon
+  canon="$(canonical_path "$path")" || return 1
+  if repo_already_queued "$canon"; then
+    return 0
+  fi
+  REPOS+=("$canon")
+}
+
 collect_scan() {
   local parent="$1"
   if [[ "$RECURSIVE" -eq 1 ]]; then
@@ -742,21 +804,21 @@ if [[ ${#TARGETS[@]} -gt 0 ]]; then
       continue
     fi
     if has_git_dir "$target"; then
-      REPOS+=("$target")
+      queue_repo "$target"
     elif [[ "$RECURSIVE" -eq 1 ]]; then
       while IFS= read -r -d '' entry; do
-        REPOS+=("$entry")
+        queue_repo "$entry"
       done < <(collect_scan "$target")
     else
       echo "warning: skipping '$(basename "$target")' (not a Git repository; try --recursive)" >&2
     fi
   done
 elif inside_git_repo "."; then
-  REPOS+=(".")
+  queue_repo "."
 else
   REQUIRE_GIT_DIR=1
   while IFS= read -r -d '' entry; do
-    REPOS+=("$entry")
+    queue_repo "$entry"
   done < <(collect_scan ".")
 fi
 

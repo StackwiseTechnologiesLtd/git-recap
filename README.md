@@ -73,12 +73,15 @@ git-recap --today                  # commits since midnight
 git-recap --yesterday              # yesterday's commits
 git-recap --week                   # commits from the last week
 git-recap --since "2 days ago"     # custom timeframe
+git-recap --since "3 days ago" --until yesterday
 git-recap --author "Jane Doe"      # override author match
+git-recap --all-authors --today    # every author in the window
 git-recap --max-length 72          # shorter standup bullets
 git-recap --plain                  # paste into Slack / notes
 git-recap --color never            # force no ANSI colors
 git-recap --summary-only           # only the standup summary block
 git-recap --flat                   # raw commit list
+git-recap --include-merges         # keep merge commits
 git-recap -r --today               # deep-scan folders for repos
 git-recap --json --today           # machine-readable summary
 GIT_RECAP_SINCE="1 week ago" git-recap
@@ -95,9 +98,10 @@ git-recap -h                       # help
 | Yesterday | `git-recap --yesterday` |
 | Week | `git-recap --week` |
 | Flag | `git-recap --since "3 days ago"` or `-s "yesterday"` |
+| Until | `git-recap --until yesterday` or `-u "2026-07-01"` |
 | Env | `GIT_RECAP_SINCE="1 week ago" git-recap` |
 
-Values are passed through to `git log --since`, so any Git date expression works. `--yesterday` uses `--since "yesterday 00:00" --until "today 00:00"`.
+Values are passed through to `git log --since` / `--until`, so any Git date expression works. `--yesterday` uses `--since "yesterday 00:00" --until "today 00:00"`.
 
 ### Routing logic
 

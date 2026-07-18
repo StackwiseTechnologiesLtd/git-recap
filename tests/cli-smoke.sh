@@ -95,6 +95,9 @@ assert_match "$help_out" "--summary-only" "--help documents --summary-only"
 assert_match "$help_out" "--flat" "--help documents --flat"
 assert_match "$help_out" "--max-length" "--help documents --max-length"
 assert_match "$help_out" "--author" "--help documents --author"
+assert_match "$help_out" "--all-authors" "--help documents --all-authors"
+assert_match "$help_out" "--until" "--help documents --until"
+assert_match "$help_out" "--include-merges" "--help documents --include-merges"
 assert_match "$help_out" "--color" "--help documents --color"
 assert_match "$help_out" "--recursive" "--help documents --recursive"
 assert_match "$help_out" "--json" "--help documents --json"
@@ -105,6 +108,7 @@ assert_match "$version_out" "git-recap 0\\.1\\." "--version prints version"
 assert_exit 1 "$SCRIPT" --color
 assert_exit 1 "$SCRIPT" --color maybe
 assert_exit 1 "$SCRIPT" --author
+assert_exit 1 "$SCRIPT" --until
 assert_exit 1 "$SCRIPT" --json --flat
 
 # ---------------------------------------------------------------------------
@@ -195,7 +199,56 @@ json_out="$("$SCRIPT" --today --json)"
 assert_match "$json_out" '"total_commits"' "--json includes total_commits"
 assert_match "$json_out" '"Features"' "--json includes Features category"
 assert_match "$json_out" 'dashboard' "--json includes subject text"
+assert_match "$json_out" '"all_authors": false' "--json reports all_authors false by default"
+assert_match "$json_out" '"include_merges": false' "--json reports include_merges false by default"
 assert_no_match "$json_out" $'\033\[' "--json has no ANSI"
+
+# --until window that excludes today's commits
+until_out="$("$SCRIPT" --since "7 days ago" --until "2 days ago" --plain || true)"
+assert_no_match "$until_out" "dashboard" "--until can exclude recent commits"
+
+# --all-authors: include a second author's commit
+(
+  cd "$REPO_A"
+  git config user.email "other@example.com"
+  git config user.name "Other Dev"
+  printf 'other\n' >> README.md
+  git add README.md
+  git commit -q -m "feat: other author change"
+)
+# Default author filter (Smoke Tester via global) should miss Other Dev's commit
+# when matching by smoke@example.com — restore local identity to smoke for default runs
+(
+  cd "$REPO_A"
+  git config user.email "smoke@example.com"
+  git config user.name "Smoke Tester"
+)
+default_author_out="$("$SCRIPT" --today --author "smoke@example.com" --plain)"
+assert_no_match "$default_author_out" "other author change" "author filter excludes other author"
+all_authors_out="$("$SCRIPT" --today --all-authors --plain)"
+assert_match "$all_authors_out" "[Oo]ther author change" "--all-authors includes every author"
+assert_match "$all_authors_out" "dashboard|alpha" "--all-authors still includes own commits"
+all_json="$("$SCRIPT" --today --all-authors --json)"
+assert_match "$all_json" '"all_authors": true' "--json reports all_authors true"
+
+# Duplicate path args should not double-count
+dedup_out="$("$SCRIPT" --today --json "$REPO_A" "$REPO_A")"
+assert_match "$dedup_out" '"repos_with_commits": 1' "duplicate path args are deduplicated"
+
+# --include-merges
+(
+  cd "$REPO_A"
+  git checkout -q -b feature/merge-fixture
+  printf 'merge-me\n' >> README.md
+  git add README.md
+  git commit -q -m "feat: branch work for merge"
+  git checkout -q -
+  git merge -q --no-ff feature/merge-fixture -m "Merge branch 'feature/merge-fixture'"
+)
+no_merge_out="$("$SCRIPT" --today --author "Smoke Tester" --flat --plain)"
+assert_no_match "$no_merge_out" "Merge branch" "merge commits omitted by default"
+merge_out="$("$SCRIPT" --today --author "Smoke Tester" --include-merges --flat --plain)"
+assert_match "$merge_out" "Merge branch" "--include-merges shows merge commits"
 
 # ---------------------------------------------------------------------------
 # Summary
