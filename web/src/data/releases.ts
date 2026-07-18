@@ -8,6 +8,19 @@ export type Release = {
 
 export const releases: Release[] = [
   {
+    version: "v0.1.2",
+    date: "2026-07-18",
+    title: "CLI quality: recursive scan, JSON, author & color controls",
+    github:
+      "https://github.com/StackwiseTechnologiesLtd/git-recap/releases/tag/v0.1.2",
+    highlights: [
+      "New flags: --version, --author, --color, --recursive, --json",
+      "Safer author matching and tighter commit classification",
+      "Expanded CLI smoke tests and Homebrew formula coverage",
+      "Marketing site polish: scroll-scrubbed terminals, dark mode primary #541111",
+    ],
+  },
+  {
     version: "v0.1.1",
     date: "2026-07-18",
     title: "Landing site, docs, and dark mode",
