@@ -10,7 +10,7 @@ cairosvg.svg2png(url=svg_file, write_to=png_file, scale=4, background_color="whi
 
 img = Image.open(png_file).convert('L')
 
-W = 240
+W = 115
 aspect_correction = 0.45
 H = int(W * (238/885) * aspect_correction)
 
