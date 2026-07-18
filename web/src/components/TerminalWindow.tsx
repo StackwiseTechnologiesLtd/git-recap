@@ -131,7 +131,7 @@ export function TerminalWindow({
   }, [active, command, loop, lines]);
 
   const showCaret = phase === "typing" || phase === "idle";
-  const showEndCaret = phase === "done" || phase === "output";
+  const showEndCaret = phase === "done" || (phase === "output" && visibleCount === lines.length);
 
   return (
     <figure ref={rootRef} className={className}>
@@ -142,28 +142,39 @@ export function TerminalWindow({
           <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
           <span className="ml-2 font-mono text-xs text-term-faint">{title}</span>
         </div>
-        <pre className="min-h-[240px] overflow-x-auto px-4 py-4 font-mono text-[12px] leading-6 text-term-fg sm:min-h-[280px] sm:px-5 sm:text-[13px]">
+        <pre className="overflow-x-auto px-4 py-4 font-mono text-[12px] leading-6 text-term-fg sm:px-5 sm:text-[13px]">
           <div className="text-term-fg">
             <span className="text-term-prompt select-none">$ </span>
             <span>{typed}</span>
+            {/* Reserve full command width so the line doesn't reflow while typing */}
+            <span className="invisible" aria-hidden>
+              {command.slice(typed.length)}
+            </span>
             {showCaret ? (
               <span className="animate-caret text-term-green">▌</span>
             ) : null}
           </div>
 
-          {visibleCount > 0 ? <div className="h-3" /> : null}
+          <div className="h-3" aria-hidden />
 
-          {lines.slice(0, visibleCount).map((line, index) => {
+          {lines.map((line, index) => {
+            const visible = index < visibleCount;
+            const hidden = visible ? "" : "invisible";
+
             if (line.kind === "dim") {
               return (
-                <div key={index} className="text-term-faint">
+                <div key={index} className={`text-term-faint ${hidden}`} aria-hidden={!visible}>
                   {line.text}
                 </div>
               );
             }
             if (line.kind === "title") {
               return (
-                <div key={index} className="font-medium text-term-cyan">
+                <div
+                  key={index}
+                  className={`font-medium text-term-cyan ${hidden}`}
+                  aria-hidden={!visible}
+                >
                   {line.text}
                 </div>
               );
@@ -172,14 +183,19 @@ export function TerminalWindow({
               return (
                 <div
                   key={index}
-                  className={`mt-2 font-medium ${toneClass[line.tone ?? "green"]}`}
+                  className={`mt-2 font-medium ${toneClass[line.tone ?? "green"]} ${hidden}`}
+                  aria-hidden={!visible}
                 >
                   {line.text}
                 </div>
               );
             }
             return (
-              <div key={index} className="pl-3 text-term-fg/95">
+              <div
+                key={index}
+                className={`pl-3 text-term-fg/95 ${hidden}`}
+                aria-hidden={!visible}
+              >
                 <span className="text-term-prompt">• </span>
                 {line.text}
                 {line.hash ? (
@@ -189,12 +205,17 @@ export function TerminalWindow({
             );
           })}
 
-          {showEndCaret && visibleCount === lines.length ? (
-            <div className="mt-3 text-term-fg">
-              <span className="text-term-prompt select-none">$ </span>
+          <div
+            className={`mt-3 text-term-fg ${showEndCaret ? "" : "invisible"}`}
+            aria-hidden={!showEndCaret}
+          >
+            <span className="text-term-prompt select-none">$ </span>
+            {showEndCaret ? (
               <span className="animate-caret text-term-green">▌</span>
-            </div>
-          ) : null}
+            ) : (
+              <span className="text-term-green">▌</span>
+            )}
+          </div>
         </pre>
       </div>
       {caption ? (

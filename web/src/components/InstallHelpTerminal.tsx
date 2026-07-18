@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PixelLogo, PixelWordmark } from "@/components/PixelBrand";
 
 type HelpRow = { cmd: string; note: string };
 
@@ -105,7 +106,7 @@ export function InstallHelpTerminal({
         timers.push(window.setTimeout(typeInstall, 400));
       };
 
-      timers.push(window.setTimeout(revealRows, 700));
+      timers.push(window.setTimeout(revealRows, 900));
     };
 
     timers.push(window.setTimeout(start, 0));
@@ -125,28 +126,33 @@ export function InstallHelpTerminal({
         <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-        <span className="ml-2 font-mono text-xs text-term-faint">git-recap</span>
+        <span className="ml-2 font-mono text-xs text-term-faint">git-recap — help</span>
       </div>
 
-      <div className="px-5 py-10 sm:px-10 sm:py-12">
+      <div className="px-5 py-10 sm:px-10 sm:py-14">
         <div
-          className={`text-center transition-all duration-700 ${
+          className={`flex flex-col items-center text-center transition-all duration-700 ${
             brandVisible ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
           }`}
         >
-          <p className="font-mono text-4xl font-semibold tracking-[0.12em] text-term-fg sm:text-5xl md:text-6xl">
-            git-recap
-          </p>
-          <p className="mt-4 font-mono text-sm text-term-muted sm:text-base">
+          <PixelLogo size={88} className="mb-6 sm:mb-7" />
+          <PixelWordmark
+            text="git-recap"
+            scale={4}
+            className="max-w-full overflow-visible"
+          />
+          <p className="mt-5 font-mono text-sm text-term-muted sm:text-base">
             &quot;{tagline}&quot;
           </p>
         </div>
 
-        <div className="mx-auto mt-10 max-w-xl space-y-3 sm:mt-12 sm:space-y-3.5">
-          {rows.slice(0, rowCount).map((row) => (
+        <div className="mx-auto mt-10 max-w-xl space-y-3.5 sm:mt-12">
+          {rows.map((row, index) => (
             <div
               key={row.cmd}
-              className="flex flex-col gap-0.5 font-mono text-[13px] leading-relaxed sm:flex-row sm:items-baseline sm:justify-between sm:gap-8 sm:text-sm"
+              className={`flex flex-col gap-0.5 font-mono text-[13px] leading-relaxed transition-opacity duration-300 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8 sm:text-sm ${
+                index < rowCount ? "opacity-100" : "opacity-0"
+              }`}
             >
               <span className="shrink-0 text-term-fg">
                 <span className="text-term-prompt select-none">$ </span>
@@ -158,7 +164,7 @@ export function InstallHelpTerminal({
         </div>
 
         <div className="mx-auto mt-10 max-w-xl border-t border-term-border pt-8 sm:mt-12">
-          <p className="font-mono text-[13px] leading-relaxed text-term-fg sm:text-sm">
+          <p className="min-h-[3.5rem] break-all font-mono text-[12px] leading-relaxed text-term-fg sm:min-h-[2.75rem] sm:text-[13px]">
             <span className="text-term-muted">{installLabel}: </span>
             <span className="text-term-green">{typedInstall}</span>
             {typingInstall || done ? (
