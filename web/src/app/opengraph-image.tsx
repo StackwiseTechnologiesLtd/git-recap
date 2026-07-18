@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { siteConfig } from "@/lib/site";
 
@@ -6,7 +8,14 @@ export const alt = `${siteConfig.name} — ${siteConfig.tagline}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+function faviconDataUrl(): string {
+  const svg = readFileSync(join(process.cwd(), "public/favicon.svg"));
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+}
+
 export default function OpenGraphImage() {
+  const logo = faviconDataUrl();
+
   return new ImageResponse(
     (
       <div
@@ -32,23 +41,13 @@ export default function OpenGraphImage() {
             letterSpacing: "-0.02em",
           }}
         >
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 14,
-              background: "#541111",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 28,
-              fontWeight: 700,
-              color: "#fff",
-            }}
-            >
-            {/* replace with actual logo and colors white keep the parent burgandy */}
-            g
-          </div>
+          <img
+            src={logo}
+            width={64}
+            height={64}
+            alt=""
+            style={{ borderRadius: 14 }}
+          />
           <span>{siteConfig.name}</span>
         </div>
 

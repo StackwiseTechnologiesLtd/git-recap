@@ -67,9 +67,10 @@ export function buildMetadata({
       description,
       images: [
         {
-          url: "/opengraph-image",
+          url: "/opengraph-image.png",
           width: 1200,
           height: 630,
+          type: "image/png",
           alt: `${siteConfig.name} — ${siteConfig.tagline}`,
         },
       ],
@@ -78,7 +79,7 @@ export function buildMetadata({
       card: "summary_large_image",
       title: pageTitle,
       description,
-      images: ["/opengraph-image"],
+      images: ["/opengraph-image.png"],
     },
     icons: {
       icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],

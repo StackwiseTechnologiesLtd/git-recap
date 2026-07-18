@@ -49,8 +49,11 @@ test("SEO routes and structured data are present", () => {
   assert.ok(readFileSync(join(root, "src/app/sitemap.ts"), "utf8").includes("sitemap"));
   assert.ok(readFileSync(join(root, "src/app/robots.ts"), "utf8").includes("robots"));
   assert.ok(
-    readFileSync(join(root, "src/app/opengraph-image.tsx"), "utf8").includes("ImageResponse"),
+    readFileSync(join(root, "src/app/opengraph-image.tsx"), "utf8").includes(
+      "favicon.svg",
+    ),
   );
+  assert.match(seo, /opengraph-image\.png/);
   assert.ok(
     readFileSync(join(root, "src/app/manifest.ts"), "utf8").includes("manifest"),
   );
