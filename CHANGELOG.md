@@ -2,6 +2,8 @@
 
 All notable changes to git-recap are documented here, mirrored on [GitHub Releases](https://github.com/StackwiseTechnologiesLtd/git-recap/releases) and the site `/releases` page (`web/src/data/releases.ts`).
 
+How to bump versions: [docs/VERSIONING.md](docs/VERSIONING.md).
+
 ## [v0.1.2] — 2026-07-18
 
 CLI quality pass: richer flags, safer matching, recursive scan, and JSON output.

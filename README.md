@@ -217,7 +217,8 @@ The marketing site lives in [`web/`](web/). Brand colors:
 
 Canonical logo: [`docs/logo.svg`](docs/logo.svg) (mirrored to `web/public/logo.svg`).
 
-Release notes: [`CHANGELOG.md`](CHANGELOG.md).
+Release notes: [`CHANGELOG.md`](CHANGELOG.md).  
+Version bumps (files to touch, manual steps, Homebrew): [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
 ---
 
@@ -225,18 +226,21 @@ Release notes: [`CHANGELOG.md`](CHANGELOG.md).
 
 The install formula lives in [`homebrew-tools`](https://github.com/StackwiseTechnologiesLtd/homebrew-tools) as `Formula/git-recap.rb`. A copy is also kept in this repo as `git-recap.rb` for reference.
 
-### Publishing a new version
+Full checklist (CLI + site files, changelog, tags): **[docs/VERSIONING.md](docs/VERSIONING.md)**.
 
-1. Merge to `main` and tag: `git tag vX.Y.Z && git push origin vX.Y.Z`
-2. Create a GitHub release (or `gh release create vX.Y.Z`)
-3. Compute the archive checksum:
+### Publishing a new version (short)
+
+1. Bump versions and docs per [VERSIONING.md](docs/VERSIONING.md), merge to `main`
+2. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
+3. Create a GitHub release (or `gh release create vX.Y.Z`)
+4. Compute the archive checksum:
 
 ```bash
 curl -sL https://github.com/StackwiseTechnologiesLtd/git-recap/archive/refs/tags/vX.Y.Z.tar.gz | shasum -a 256
 ```
 
-4. Update `url` + `sha256` in the tap formula and push `homebrew-tools`
-5. Users upgrade with `brew upgrade git-recap`
+5. Update `url` + `sha256` in the tap formula (and this repo’s `git-recap.rb`) and push `homebrew-tools`
+6. Users upgrade with `brew upgrade git-recap`
 
 ---
 

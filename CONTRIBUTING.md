@@ -123,6 +123,10 @@ Include:
 
 If you discover a security issue (e.g. unsafe path handling that could execute unexpected content), please open a private security advisory on GitHub or contact the maintainers before filing a public issue.
 
+## Releases (maintainers)
+
+Version bumps are manual. See [docs/VERSIONING.md](docs/VERSIONING.md) for the file checklist and publish steps (tag, GitHub Release, Homebrew).
+
 ## License
 
 By contributing, you agree that your contributions are licensed under the MIT License (see [LICENSE](LICENSE)).

@@ -99,11 +99,15 @@ Always run the local equivalents before pushing.
 
 ## Releases (maintainers)
 
-1. Land changes on `main`.
-2. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
+See **[VERSIONING.md](VERSIONING.md)** for the full checklist: which files to bump, CLI vs site-only releases, tagging, GitHub Releases, and Homebrew.
+
+Short path:
+
+1. Manually bump versions / changelog / `/releases` data (see VERSIONING.md).
+2. Land on `main`, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
 3. Create a GitHub Release.
-4. Refresh Homebrew tap SHA256 (see root README).
-5. Confirm `brew upgrade git-recap` installs the new version.
+4. Refresh Homebrew `url` + `sha256` (CLI releases only).
+5. Confirm `brew upgrade git-recap` and the live site `/releases` page.
 
 ## Troubleshooting
 
@@ -116,6 +120,7 @@ Always run the local equivalents before pushing.
 
 ## Further reading
 
+* [VERSIONING.md](VERSIONING.md) — version bumps and releases
 * [CONTRIBUTING.md](../CONTRIBUTING.md)
 * [README.md](../README.md)
 * [web/README.md](../web/README.md)
