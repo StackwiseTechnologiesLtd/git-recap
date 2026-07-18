@@ -118,9 +118,9 @@ export default function Home() {
       <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
       <SiteHeader />
 
-      <main className="relative pb-28 sm:pb-32">
-        <section className="mx-auto max-w-6xl px-5 pb-16 pt-28 sm:px-8 sm:pb-24 sm:pt-32">
-          <div className="mx-auto max-w-3xl text-center">
+      <main className="relative pb-8 sm:pb-12">
+        <section className="mx-auto max-w-6xl min-w-0 px-5 pb-16 pt-28 sm:px-8 sm:pb-24 sm:pt-32">
+          <div className="mx-auto max-w-3xl min-w-0 text-center">
             <div className="animate-rise flex items-center justify-center gap-3 sm:gap-4">
               <AnimatedLogo size={56} className="sm:scale-110" />
               <p className="text-2xl font-semibold tracking-tight text-fg sm:text-3xl">
@@ -139,7 +139,7 @@ export default function Home() {
               grouped, paste-ready summary — offline, private, and zero-dependency.
             </p>
 
-            <div className="animate-rise-delay-2 mx-auto mt-8 max-w-2xl">
+            <div className="animate-rise-delay-2 mx-auto mt-8 w-full max-w-2xl min-w-0">
               <CopyCommand command={BREW_INSTALL} />
             </div>
 
@@ -161,7 +161,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="animate-terminal mx-auto mt-14 max-w-2xl sm:mt-16">
+          <div className="animate-terminal mx-auto mt-14 w-full max-w-2xl min-w-0 sm:mt-16">
             <TerminalWindow
               command="git-recap"
               lines={heroLines}
@@ -172,7 +172,7 @@ export default function Home() {
         </section>
 
         <section id="features" className="border-t border-line py-20 sm:py-28">
-          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <div className="mx-auto max-w-6xl min-w-0 px-5 sm:px-8">
             <Reveal className="mx-auto max-w-2xl text-center">
               <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
                 Features
@@ -189,12 +189,8 @@ export default function Home() {
             <div className="mt-16 space-y-20 sm:mt-20 sm:space-y-28">
               {featureRows.map((item) => (
                 <Reveal key={item.title}>
-                  <div
-                    className={`grid items-center gap-10 lg:grid-cols-2 lg:gap-16 ${
-                      item.reverse ? "" : ""
-                    }`}
-                  >
-                    <div className={item.reverse ? "lg:order-2" : ""}>
+                  <div className="grid min-w-0 items-center gap-10 lg:grid-cols-2 lg:gap-16">
+                    <div className={`min-w-0 ${item.reverse ? "lg:order-2" : ""}`}>
                       <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
                         {item.eyebrow}
                       </p>
@@ -205,7 +201,7 @@ export default function Home() {
                         {item.body}
                       </p>
                     </div>
-                    <div className={item.reverse ? "lg:order-1" : ""}>
+                    <div className={`min-w-0 ${item.reverse ? "lg:order-1" : ""}`}>
                       <TerminalWindow
                         command={item.command}
                         lines={item.lines}
@@ -221,8 +217,8 @@ export default function Home() {
         </section>
 
         <section className="border-t border-line py-20 sm:py-28">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
-            <Reveal>
+          <div className="mx-auto grid max-w-6xl min-w-0 items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
+            <Reveal className="min-w-0">
               <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
                 Smart summaries
               </p>
@@ -250,7 +246,7 @@ export default function Home() {
                 />
               </ul>
             </Reveal>
-            <Reveal delay={2}>
+            <Reveal className="min-w-0" delay={2}>
               <TerminalWindow
                 command="git-recap --summary-only"
                 lines={summaryLines}
@@ -260,8 +256,8 @@ export default function Home() {
         </section>
 
         <section className="border-t border-line py-20 sm:py-28">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
-            <Reveal className="order-2 lg:order-1" delay={1}>
+          <div className="mx-auto grid max-w-6xl min-w-0 items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
+            <Reveal className="order-2 min-w-0 lg:order-1" delay={1}>
               <div className="panel-hover rounded-2xl border border-line-strong bg-bg-panel p-6 sm:p-8">
                 <div className="font-mono text-xs tracking-wide text-accent uppercase">
                   Routing
@@ -326,7 +322,7 @@ export default function Home() {
               </p>
             </Reveal>
 
-            <Reveal className="mx-auto mt-12 max-w-3xl" delay={1}>
+            <Reveal className="mx-auto mt-12 w-full max-w-3xl min-w-0" delay={1}>
               <InstallHelpTerminal
                 rows={helpRows}
                 installLabel="install"
@@ -335,7 +331,7 @@ export default function Home() {
               />
             </Reveal>
 
-            <Reveal className="mx-auto mt-6 max-w-3xl" delay={2}>
+            <Reveal className="mx-auto mt-6 w-full max-w-3xl min-w-0" delay={2}>
               <CopyCommand command={BREW_INSTALL} />
               <p className="mt-5 text-center text-sm text-muted">
                 Prefer source? See{" "}

@@ -16,7 +16,7 @@ export default function ReleasesPage() {
       <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
       <SiteHeader />
 
-      <main className="relative mx-auto max-w-3xl px-5 pb-36 pt-28 sm:px-8 sm:pb-40 sm:pt-32">
+      <main className="relative mx-auto max-w-3xl px-5 pb-12 pt-28 sm:px-8 sm:pb-16 sm:pt-32">
         <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
           Changelog
         </p>

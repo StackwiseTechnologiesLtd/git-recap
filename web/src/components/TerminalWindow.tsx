@@ -135,24 +135,24 @@ export function TerminalWindow({
   );
 
   return (
-    <figure ref={rootRef} className={className}>
-      <div className="panel-hover overflow-hidden rounded-2xl border border-term-border bg-term-bg">
-        <div className="flex items-center gap-2 border-b border-term-border bg-term-elevated px-4 py-3">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-          <span className="ml-2 truncate font-mono text-xs text-term-faint">
+    <figure ref={rootRef} className={`min-w-0 max-w-full ${className}`}>
+      <div className="panel-hover min-w-0 overflow-hidden rounded-2xl border border-term-border bg-term-bg">
+        <div className="flex min-w-0 items-center gap-2 border-b border-term-border bg-term-elevated px-3 py-3 sm:px-4">
+          <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#ff5f57]" />
+          <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#febc2e]" />
+          <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#28c840]" />
+          <span className="ml-2 min-w-0 truncate font-mono text-xs text-term-faint">
             {title}
           </span>
         </div>
-        <pre className="overflow-hidden px-3 py-3.5 font-mono text-[11px] leading-5 break-words whitespace-pre-wrap text-term-fg sm:px-5 sm:py-4 sm:text-[13px] sm:leading-6">
-          <div className="text-term-fg">
+        <pre className="min-w-0 overflow-x-auto px-3 py-3.5 font-mono text-[11px] leading-5 break-words whitespace-pre-wrap text-term-fg sm:px-5 sm:py-4 sm:text-[13px] sm:leading-6">
+          <div className="min-w-0 text-term-fg">
             <span className="text-term-prompt select-none">$ </span>
-            <span>{typed}</span>
+            <span className="break-all sm:break-words">{typed}</span>
             {typing || progress < 0.02 ? (
               <span className="animate-caret text-term-green">▌</span>
             ) : null}
-            <span className="invisible" aria-hidden>
+            <span className="invisible break-all sm:break-words" aria-hidden>
               {command.slice(typed.length)}
             </span>
           </div>
@@ -167,7 +167,7 @@ export function TerminalWindow({
               return (
                 <div
                   key={index}
-                  className={`truncate text-term-faint ${hidden}`}
+                  className={`min-w-0 break-words text-term-faint ${hidden}`}
                   aria-hidden={!visible}
                 >
                   {line.text}
@@ -178,7 +178,7 @@ export function TerminalWindow({
               return (
                 <div
                   key={index}
-                  className={`truncate font-medium text-term-cyan ${hidden}`}
+                  className={`min-w-0 break-words font-medium text-term-cyan ${hidden}`}
                   aria-hidden={!visible}
                 >
                   {line.text}
@@ -189,7 +189,7 @@ export function TerminalWindow({
               return (
                 <div
                   key={index}
-                  className={`mt-1.5 truncate font-medium sm:mt-2 ${toneClass[line.tone ?? "green"]} ${hidden}`}
+                  className={`mt-1.5 min-w-0 break-words font-medium sm:mt-2 ${toneClass[line.tone ?? "green"]} ${hidden}`}
                   aria-hidden={!visible}
                 >
                   {line.text}
@@ -199,7 +199,7 @@ export function TerminalWindow({
             return (
               <div
                 key={index}
-                className={`truncate pl-2 text-term-fg/95 sm:pl-3 ${hidden}`}
+                className={`min-w-0 break-words pl-2 text-term-fg/95 sm:pl-3 ${hidden}`}
                 aria-hidden={!visible}
               >
                 <span className="text-term-prompt">• </span>
@@ -225,7 +225,7 @@ export function TerminalWindow({
         </pre>
       </div>
       {caption ? (
-        <figcaption className="mt-4 text-center font-mono text-xs text-faint sm:text-[13px]">
+        <figcaption className="mt-4 px-1 text-center font-mono text-xs text-faint sm:text-[13px]">
           {caption}
         </figcaption>
       ) : null}

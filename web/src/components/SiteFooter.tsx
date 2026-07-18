@@ -19,11 +19,11 @@ const links = [
 
 export function SiteFooter() {
   return (
-    <footer className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-4 pb-4 sm:px-6 sm:pb-5">
-      <div className="pointer-events-auto mx-auto max-w-5xl">
+    <footer className="relative z-10 px-4 pb-6 pt-2 sm:px-6 sm:pb-8">
+      <div className="mx-auto max-w-5xl">
         <div className="rounded-2xl border border-line-strong bg-bg px-4 py-4 sm:px-5">
           <div className="flex flex-col gap-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-            <p className="flex items-center gap-2">
+            <p className="flex justify-center items-center gap-2">
               <Image
                 src="/logo.svg"
                 alt=""
@@ -56,8 +56,9 @@ export function SiteFooter() {
                 ),
               )}
             </nav>
-            <p className="text-faint">
-              MIT ·{" "}
+            <p className="flex justify-center items-center gap-2 text-faint">
+              MIT
+              <span>{" "} ·{" "}</span>
               <a
                 href="https://stackwisetechnologies.com/"
                 target="_blank"

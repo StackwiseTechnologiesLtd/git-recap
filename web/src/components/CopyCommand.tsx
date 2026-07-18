@@ -22,9 +22,9 @@ export function CopyCommand({ command, className = "" }: CopyCommandProps) {
 
   return (
     <div
-      className={`relative overflow-hidden rounded-xl border border-term-border bg-term-bg transition-[transform,border-color] duration-300 hover:-translate-y-0.5 hover:border-white/20 ${className}`}
+      className={`flex items-center gap-2 overflow-hidden rounded-xl border border-term-border bg-term-bg transition-[transform,border-color] duration-300 hover:-translate-y-0.5 hover:border-white/20 ${className}`}
     >
-      <pre className="overflow-hidden py-3.5 pr-24 pl-4 font-mono text-[12px] leading-relaxed break-words whitespace-pre-wrap text-term-fg sm:pr-28 sm:text-sm">
+      <pre className="min-w-0 flex-1 overflow-x-auto py-3.5 pl-3 font-mono text-[10px] leading-none whitespace-nowrap text-term-fg [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:pl-4 sm:text-sm sm:leading-none">
         <span className="text-term-prompt select-none">$ </span>
         {command}
       </pre>
@@ -32,7 +32,7 @@ export function CopyCommand({ command, className = "" }: CopyCommandProps) {
         type="button"
         onClick={handleCopy}
         aria-label={copied ? "Copied" : "Copy install command"}
-        className="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg bg-accent-fill px-3 py-1.5 text-xs font-medium tracking-wide text-white transition-colors hover:bg-accent-fill-hover sm:right-2.5 sm:px-3.5 sm:text-sm"
+        className="mr-2 shrink-0 rounded-lg bg-accent-fill px-3 py-1.5 text-xs font-medium tracking-wide text-white transition-colors hover:bg-accent-fill-hover sm:mr-2.5 sm:px-3.5 sm:text-sm"
       >
         {copied ? "Copied" : "Copy"}
       </button>

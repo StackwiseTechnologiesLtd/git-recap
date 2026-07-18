@@ -54,16 +54,18 @@ export function InstallHelpTerminal({
   return (
     <div
       ref={rootRef}
-      className={`overflow-hidden rounded-2xl border border-term-border bg-term-bg ${className}`}
+      className={`min-w-0 max-w-full overflow-hidden rounded-2xl border border-term-border bg-term-bg ${className}`}
     >
-      <div className="flex items-center gap-2 border-b border-term-border bg-term-elevated px-4 py-3">
-        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-        <span className="ml-2 font-mono text-xs text-term-faint">git-recap — help</span>
+      <div className="flex min-w-0 items-center gap-2 border-b border-term-border bg-term-elevated px-3 py-3 sm:px-4">
+        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#ff5f57]" />
+        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#febc2e]" />
+        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#28c840]" />
+        <span className="ml-2 min-w-0 truncate font-mono text-xs text-term-faint">
+          git-recap — help
+        </span>
       </div>
 
-      <div className="px-5 py-9 sm:px-10 sm:py-12">
+      <div className="min-w-0 px-4 py-9 sm:px-10 sm:py-12">
         <div
           style={{
             opacity: brandOpacity,
@@ -71,8 +73,8 @@ export function InstallHelpTerminal({
           }}
           className="will-change-transform"
         >
-          <div className="flex items-center justify-center gap-4 sm:gap-5">
-            <PixelLogo size={64} className="shrink-0 sm:scale-110" />
+          <div className="flex min-w-0 items-center justify-center gap-3 sm:gap-5">
+            <PixelLogo size={56} className="shrink-0 sm:scale-110" />
             <div className="min-w-0 text-left">
               <PixelWordmark
                 text="git-recap"
@@ -86,31 +88,33 @@ export function InstallHelpTerminal({
           </div>
         </div>
 
-        <div className="mx-auto mt-9 max-w-xl rounded-xl border border-term-border/80 bg-black/25 px-4 py-4 sm:mt-11 sm:px-5 sm:py-5">
+        <div className="mx-auto mt-9 max-w-xl min-w-0 rounded-xl border border-term-border/80 bg-black/25 px-3 py-4 sm:mt-11 sm:px-5 sm:py-5">
           <div className="space-y-3">
             {rows.map((row, index) => (
               <div
                 key={row.cmd}
-                className="grid gap-1 font-mono text-[12px] leading-relaxed sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] sm:items-baseline sm:gap-6 sm:text-[13px]"
+                className="grid min-w-0 gap-1 font-mono text-[11px] leading-relaxed sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] sm:items-baseline sm:gap-6 sm:text-[13px]"
                 style={{
                   opacity: index < rowCount ? 1 : 0,
                   transform:
                     index < rowCount ? "none" : "translateY(4px)",
                 }}
               >
-                <span className="min-w-0 truncate text-term-fg">
+                <span className="min-w-0 break-all text-term-fg sm:break-words">
                   <span className="text-term-prompt select-none">$ </span>
                   {row.cmd}
                 </span>
-                <span className="truncate text-term-muted sm:text-right">{row.note}</span>
+                <span className="min-w-0 break-words text-term-muted sm:text-right">
+                  {row.note}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mx-auto mt-8 max-w-xl sm:mt-9">
-          <div className="rounded-xl border border-term-border bg-term-elevated/80 px-4 py-3.5 sm:px-5">
-            <p className="min-h-[3.25rem] break-words font-mono text-[12px] leading-relaxed text-term-fg sm:min-h-[2.5rem] sm:text-[13px]">
+        <div className="mx-auto mt-8 max-w-xl min-w-0 sm:mt-9">
+          <div className="min-w-0 overflow-hidden rounded-xl border border-term-border bg-term-elevated/80 px-3 py-3.5 sm:px-5">
+            <p className="overflow-x-auto font-mono text-[11px] leading-none whitespace-nowrap text-term-fg sm:text-[13px]">
               <span className="text-term-muted">{installLabel}: </span>
               <span className="text-term-green">{typedInstall}</span>
               {typingInstall || done ? (
