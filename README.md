@@ -91,6 +91,8 @@ git-recap -V                       # version
 git-recap -h                       # help
 ```
 
+If `--reviews` is missing a dependency, git-recap still prints your commit recap and writes setup steps to stderr (install `gh`, run `gh auth login`, etc.).
+
 ### Timeframe
 
 | Method | Example |

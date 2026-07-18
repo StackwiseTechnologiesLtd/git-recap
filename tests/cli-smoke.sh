@@ -261,10 +261,17 @@ assert_match "$merge_out" "Merge branch" "--include-merges shows merge commits"
 review_commit_out="$("$SCRIPT" --today --author "Smoke Tester" --plain)"
 assert_match "$review_commit_out" "Reviews" "review: commits classify under Reviews"
 
-# --reviews without gh auth in PATH still exits cleanly (warns or fetches)
+# --reviews: JSON still works; when gh is missing from PATH, print setup guidance
 reviews_out="$("$SCRIPT" --today --reviews --json --author "Smoke Tester" 2>"$TMPDIR_ROOT/reviews.err")"
 assert_match "$reviews_out" '"include_reviews": true' "--json reports include_reviews"
 assert_match "$reviews_out" '"total_reviews"' "--json includes total_reviews"
+
+PATH="/usr/bin:/bin" "$SCRIPT" --today --reviews --json --author "Smoke Tester" \
+  >"$TMPDIR_ROOT/reviews-nogh.out" 2>"$TMPDIR_ROOT/reviews-nogh.err" || true
+assert_match "$(cat "$TMPDIR_ROOT/reviews-nogh.err")" "gh not installed|brew install gh|gh auth login" \
+  "--reviews without gh prints setup guidance"
+assert_match "$(cat "$TMPDIR_ROOT/reviews-nogh.out")" '"total_reviews": 0' \
+  "--reviews without gh still emits JSON with zero reviews"
 
 # ---------------------------------------------------------------------------
 # Summary

@@ -902,32 +902,107 @@ review_verb_for_state() {
   esac
 }
 
+# Print setup guidance for --reviews prerequisites, then continue without reviews.
+reviews_setup_help() {
+  local reason="$1"
+  echo "warning: --reviews skipped (${reason})." >&2
+  echo "  Commit recap continues below. To enable PR reviews:" >&2
+  case "$reason" in
+    "gh not installed")
+      cat >&2 <<'EOF'
+  1. Install the GitHub CLI:
+       macOS:  brew install gh
+       Linux:  https://github.com/cli/cli#installation
+  2. Sign in:
+       gh auth login
+  3. Re-run:
+       git-recap --reviews --today
+EOF
+      ;;
+    "gh not authenticated")
+      cat >&2 <<'EOF'
+  1. Sign in to GitHub (opens a browser / prompts for a token):
+       gh auth login
+     Prefer HTTPS + login via browser, or paste a classic/PAT with `repo` scope.
+  2. Confirm:
+       gh auth status
+  3. If the token expired or SSH/HTTPS remotes are unrelated — still run
+     `gh auth login` (reviews use the gh API token, not your git SSH key).
+  4. Re-run:
+       git-recap --reviews --today
+EOF
+      ;;
+    "python3 not installed")
+      cat >&2 <<'EOF'
+  1. Install Python 3 (used only to parse review timestamps):
+       macOS:  brew install python
+       Linux:  sudo apt install python3   # or your distro equivalent
+  2. Confirm:
+       python3 --version
+  3. Re-run:
+       git-recap --reviews --today
+EOF
+      ;;
+    "could not resolve gh user"|"failed to query GitHub")
+      cat >&2 <<'EOF'
+  1. Check auth and network:
+       gh auth status
+       gh api user --jq .login
+  2. Refresh a stale/expired token:
+       gh auth login
+       # or: gh auth refresh -h github.com -s repo
+  3. If you are offline or GitHub is unreachable, retry later.
+  4. Re-run:
+       git-recap --reviews --today
+EOF
+      ;;
+    *)
+      cat >&2 <<'EOF'
+  1. Ensure GitHub CLI is installed and signed in:
+       brew install gh   # if needed
+       gh auth login
+       gh auth status
+  2. Re-run:
+       git-recap --reviews --today
+EOF
+      ;;
+  esac
+}
+
 # Fetch GitHub PR reviews for the authenticated gh user into the Reviews bucket.
 fetch_github_reviews() {
-  local from_iso to_iso from_day login payload
+  local from_iso to_iso from_day login payload auth_err
 
   if ! command -v gh >/dev/null 2>&1; then
-    echo "warning: --reviews requires the GitHub CLI (gh); skipping reviews" >&2
+    reviews_setup_help "gh not installed"
     return 1
   fi
-  if ! gh auth status >/dev/null 2>&1; then
-    echo "warning: --reviews requires an authenticated gh session (gh auth login); skipping reviews" >&2
+
+  auth_err="$(gh auth status 2>&1)" || {
+    if [[ -n "$auth_err" ]]; then
+      echo "warning: gh auth status:" >&2
+      printf '%s\n' "$auth_err" | sed 's/^/  /' >&2
+    fi
+    reviews_setup_help "gh not authenticated"
     return 1
-  fi
+  }
+
   if ! command -v python3 >/dev/null 2>&1; then
-    echo "warning: --reviews requires python3 to parse review dates; skipping reviews" >&2
+    reviews_setup_help "python3 not installed"
     return 1
   fi
 
   from_iso="$(approxidate_to_iso "$SINCE" 2>/dev/null || true)"
   if [[ -z "$from_iso" ]]; then
-    echo "warning: --reviews could not parse --since '${SINCE}'; skipping reviews" >&2
+    echo "warning: --reviews could not parse --since '${SINCE}'." >&2
+    echo "  Use a preset (--today / --yesterday / --week) or a simple relative date like \"3 days ago\"." >&2
     return 1
   fi
   if [[ -n "$UNTIL" ]]; then
     to_iso="$(approxidate_to_iso "$UNTIL" 2>/dev/null || true)"
     if [[ -z "$to_iso" ]]; then
-      echo "warning: --reviews could not parse --until '${UNTIL}'; skipping reviews" >&2
+      echo "warning: --reviews could not parse --until '${UNTIL}'." >&2
+      echo "  Try an ISO date (YYYY-MM-DD) or a relative expression like \"yesterday\"." >&2
       return 1
     fi
   else
@@ -935,12 +1010,12 @@ fetch_github_reviews() {
   fi
 
   if [[ "$ALL_AUTHORS" -eq 1 || -n "$AUTHOR_OVERRIDE" ]]; then
-    echo "warning: --reviews always uses the authenticated gh user (author filters apply to commits only)" >&2
+    echo "note: --reviews always uses the authenticated gh user (author filters apply to commits only)" >&2
   fi
 
   login="$(gh api user --jq .login 2>/dev/null || true)"
   if [[ -z "$login" ]]; then
-    echo "warning: --reviews could not resolve the gh user; skipping reviews" >&2
+    reviews_setup_help "could not resolve gh user"
     return 1
   fi
 
@@ -964,7 +1039,7 @@ fetch_github_reviews() {
   )"
 
   if [[ -z "$payload" ]]; then
-    echo "warning: --reviews failed to query GitHub; skipping reviews" >&2
+    reviews_setup_help "failed to query GitHub"
     return 1
   fi
 
