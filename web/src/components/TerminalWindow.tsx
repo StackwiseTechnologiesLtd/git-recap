@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
+import { useScrollProgress } from "@/hooks/useScrollProgress";
 
 export type TerminalLine =
   | { kind: "dim"; text: string }
@@ -14,8 +15,10 @@ type TerminalWindowProps = {
   title?: string;
   caption?: string;
   className?: string;
-  /** Restart the demo after it finishes (hero). */
-  loop?: boolean;
+  /** Viewport fraction where typing starts (element top). */
+  scrollStart?: number;
+  /** Viewport fraction where output completes (element top). */
+  scrollEnd?: number;
 };
 
 const toneClass = {
@@ -25,113 +28,49 @@ const toneClass = {
   cyan: "text-term-cyan",
 } as const;
 
-function prefersReducedMotion() {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 export function TerminalWindow({
   command,
   lines,
   title = "git-recap",
   caption,
   className = "",
-  loop = false,
+  scrollStart,
+  scrollEnd,
 }: TerminalWindowProps) {
   const rootRef = useRef<HTMLElement>(null);
-  const [active, setActive] = useState(false);
-  const [typed, setTyped] = useState("");
-  const [visibleCount, setVisibleCount] = useState(0);
-  const [phase, setPhase] = useState<"idle" | "typing" | "output" | "done">(
-    "idle",
-  );
+  const progress = useScrollProgress(rootRef, {
+    start: scrollStart,
+    end: scrollEnd,
+  });
 
-  useEffect(() => {
-    const node = rootRef.current;
-    if (!node) return;
+  const { typed, visibleCount, typing, done } = useMemo(() => {
+    const typeWeight = Math.max(command.length, 10);
+    const lineWeight = Math.max(lines.length, 1) * 2.2;
+    const total = typeWeight + lineWeight;
+    const units = progress * total;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setActive(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.2 },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!active) return;
-
-    let cancelled = false;
-    const timers: number[] = [];
-    const output = lines;
-    const reduced = prefersReducedMotion();
-
-    function finishImmediate() {
-      if (cancelled) return;
-      setTyped(command);
-      setVisibleCount(output.length);
-      setPhase("done");
-    }
-
-    function run() {
-      if (reduced) {
-        finishImmediate();
-        return;
-      }
-
-      setTyped("");
-      setVisibleCount(0);
-      setPhase("typing");
-
-      let i = 0;
-      const typeNext = () => {
-        if (cancelled) return;
-        if (i <= command.length) {
-          setTyped(command.slice(0, i));
-          i += 1;
-          timers.push(window.setTimeout(typeNext, 28 + Math.random() * 22));
-          return;
-        }
-        setPhase("output");
-        let line = 0;
-        const revealNext = () => {
-          if (cancelled) return;
-          if (line < output.length) {
-            line += 1;
-            setVisibleCount(line);
-            timers.push(window.setTimeout(revealNext, 70));
-            return;
-          }
-          setPhase("done");
-          if (loop) {
-            timers.push(
-              window.setTimeout(() => {
-                if (!cancelled) run();
-              }, 4200),
-            );
-          }
-        };
-        timers.push(window.setTimeout(revealNext, 280));
+    if (units <= typeWeight) {
+      const chars = Math.round((units / typeWeight) * command.length);
+      return {
+        typed: command.slice(0, chars),
+        visibleCount: 0,
+        typing: chars < command.length,
+        done: false,
       };
-
-      timers.push(window.setTimeout(typeNext, 320));
     }
 
-    timers.push(window.setTimeout(run, 0));
-
-    return () => {
-      cancelled = true;
-      timers.forEach((id) => window.clearTimeout(id));
+    const lineProgress = (units - typeWeight) / lineWeight;
+    const count = Math.min(
+      lines.length,
+      Math.round(lineProgress * lines.length),
+    );
+    return {
+      typed: command,
+      visibleCount: count,
+      typing: false,
+      done: count >= lines.length,
     };
-  }, [active, command, loop, lines]);
-
-  const showCaret = phase === "typing" || phase === "idle";
-  const showEndCaret = phase === "done" || (phase === "output" && visibleCount === lines.length);
+  }, [command, lines, progress]);
 
   return (
     <figure ref={rootRef} className={className}>
@@ -146,11 +85,10 @@ export function TerminalWindow({
           <div className="text-term-fg">
             <span className="text-term-prompt select-none">$ </span>
             <span>{typed}</span>
-            {/* Reserve full command width so the line doesn't reflow while typing */}
             <span className="invisible" aria-hidden>
               {command.slice(typed.length)}
             </span>
-            {showCaret ? (
+            {typing || progress < 0.02 ? (
               <span className="animate-caret text-term-green">▌</span>
             ) : null}
           </div>
@@ -163,7 +101,11 @@ export function TerminalWindow({
 
             if (line.kind === "dim") {
               return (
-                <div key={index} className={`text-term-faint ${hidden}`} aria-hidden={!visible}>
+                <div
+                  key={index}
+                  className={`text-term-faint ${hidden}`}
+                  aria-hidden={!visible}
+                >
                   {line.text}
                 </div>
               );
@@ -206,11 +148,11 @@ export function TerminalWindow({
           })}
 
           <div
-            className={`mt-3 text-term-fg ${showEndCaret ? "" : "invisible"}`}
-            aria-hidden={!showEndCaret}
+            className={`mt-3 text-term-fg ${done ? "" : "invisible"}`}
+            aria-hidden={!done}
           >
             <span className="text-term-prompt select-none">$ </span>
-            {showEndCaret ? (
+            {done ? (
               <span className="animate-caret text-term-green">▌</span>
             ) : (
               <span className="text-term-green">▌</span>

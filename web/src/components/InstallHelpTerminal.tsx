@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { PixelLogo, PixelWordmark } from "@/components/PixelBrand";
+import { useScrollProgress } from "@/hooks/useScrollProgress";
 
 type HelpRow = { cmd: string; note: string };
 
@@ -13,11 +14,6 @@ type InstallHelpTerminalProps = {
   className?: string;
 };
 
-function prefersReducedMotion() {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 export function InstallHelpTerminal({
   rows,
   installLabel = "install",
@@ -26,96 +22,34 @@ export function InstallHelpTerminal({
   className = "",
 }: InstallHelpTerminalProps) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(false);
-  const [brandVisible, setBrandVisible] = useState(false);
-  const [rowCount, setRowCount] = useState(0);
-  const [typedInstall, setTypedInstall] = useState("");
-  const [typingInstall, setTypingInstall] = useState(false);
-  const [done, setDone] = useState(false);
+  const progress = useScrollProgress(rootRef, { start: 0.95, end: 0.22 });
 
-  useEffect(() => {
-    const node = rootRef.current;
-    if (!node) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setActive(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.18 },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
+  const { brandOpacity, rowCount, typedInstall, typingInstall, done } =
+    useMemo(() => {
+      // 0–0.18 brand, 0.18–0.62 rows, 0.62–1 install typing
+      const brandOpacity = Math.min(1, progress / 0.18);
 
-  useEffect(() => {
-    if (!active) return;
-
-    let cancelled = false;
-    const timers: number[] = [];
-    const demoRows = rows;
-    const reduced = prefersReducedMotion();
-
-    const start = () => {
-      if (cancelled) return;
-
-      if (reduced) {
-        setBrandVisible(true);
-        setRowCount(demoRows.length);
-        setTypedInstall(installCommand);
-        setDone(true);
-        return;
+      let rowCount = 0;
+      if (progress > 0.18) {
+        const rowT = Math.min(1, (progress - 0.18) / 0.44);
+        rowCount = Math.round(rowT * rows.length);
       }
 
-      setBrandVisible(false);
-      setRowCount(0);
-      setTypedInstall("");
-      setTypingInstall(false);
-      setDone(false);
+      let typedInstall = "";
+      let typingInstall = false;
+      let done = false;
+      if (progress > 0.62) {
+        const typeT = Math.min(1, (progress - 0.62) / 0.38);
+        const chars = Math.round(typeT * installCommand.length);
+        typedInstall = installCommand.slice(0, chars);
+        typingInstall = chars < installCommand.length;
+        done = chars >= installCommand.length;
+      } else if (rowCount >= rows.length && progress > 0.55) {
+        typingInstall = true;
+      }
 
-      timers.push(
-        window.setTimeout(() => {
-          if (!cancelled) setBrandVisible(true);
-        }, 200),
-      );
-
-      let row = 0;
-      const revealRows = () => {
-        if (cancelled) return;
-        if (row < demoRows.length) {
-          row += 1;
-          setRowCount(row);
-          timers.push(window.setTimeout(revealRows, 110));
-          return;
-        }
-
-        setTypingInstall(true);
-        let i = 0;
-        const typeInstall = () => {
-          if (cancelled) return;
-          if (i <= installCommand.length) {
-            setTypedInstall(installCommand.slice(0, i));
-            i += 1;
-            timers.push(window.setTimeout(typeInstall, 20 + Math.random() * 16));
-            return;
-          }
-          setTypingInstall(false);
-          setDone(true);
-        };
-        timers.push(window.setTimeout(typeInstall, 380));
-      };
-
-      timers.push(window.setTimeout(revealRows, 850));
-    };
-
-    timers.push(window.setTimeout(start, 0));
-
-    return () => {
-      cancelled = true;
-      timers.forEach((id) => window.clearTimeout(id));
-    };
-  }, [active, installCommand, rows]);
+      return { brandOpacity, rowCount, typedInstall, typingInstall, done };
+    }, [progress, rows.length, installCommand]);
 
   return (
     <div
@@ -131,9 +65,11 @@ export function InstallHelpTerminal({
 
       <div className="px-5 py-9 sm:px-10 sm:py-12">
         <div
-          className={`transition-all duration-700 ${
-            brandVisible ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
-          }`}
+          style={{
+            opacity: brandOpacity,
+            transform: `translateY(${(1 - brandOpacity) * 12}px)`,
+          }}
+          className="will-change-transform"
         >
           <div className="flex items-center justify-center gap-4 sm:gap-5">
             <PixelLogo size={64} className="shrink-0 sm:scale-110" />
@@ -155,9 +91,12 @@ export function InstallHelpTerminal({
             {rows.map((row, index) => (
               <div
                 key={row.cmd}
-                className={`grid gap-1 font-mono text-[12px] leading-relaxed transition-opacity duration-300 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] sm:items-baseline sm:gap-6 sm:text-[13px] ${
-                  index < rowCount ? "opacity-100" : "opacity-0"
-                }`}
+                className="grid gap-1 font-mono text-[12px] leading-relaxed sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] sm:items-baseline sm:gap-6 sm:text-[13px]"
+                style={{
+                  opacity: index < rowCount ? 1 : 0,
+                  transform:
+                    index < rowCount ? "none" : "translateY(4px)",
+                }}
               >
                 <span className="min-w-0 text-term-fg">
                   <span className="text-term-prompt select-none">$ </span>
