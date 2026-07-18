@@ -21,8 +21,8 @@
 class GitRecap < Formula
   desc "Offline standup summaries from your local Git commit messages"
   homepage "https://github.com/StackwiseTechnologiesLtd/git-recap"
-  url "https://github.com/StackwiseTechnologiesLtd/git-recap/archive/refs/tags/v0.1.1.tar.gz"
-  sha256 "7bcd5718c4a8a14c0d2d46341483f9c339d9dadc8aaef8c48700eaa3e80a4640"
+  url "https://github.com/StackwiseTechnologiesLtd/git-recap/archive/refs/tags/v0.1.2.tar.gz"
+  sha256 "46f5b4ad4de1e823b8b01b6289f51325a374eed348167966ca0beda2a027e923"
   license "MIT"
   head "https://github.com/StackwiseTechnologiesLtd/git-recap.git", branch: "main"
 
