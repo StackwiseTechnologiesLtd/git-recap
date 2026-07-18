@@ -4,6 +4,21 @@ All notable changes to git-recap are documented here, mirrored on [GitHub Releas
 
 How to bump versions: [docs/VERSIONING.md](docs/VERSIONING.md).
 
+## [v0.1.3] — 2026-07-18
+
+Brand / logo pass across CLI help and marketing site.
+
+### Changed
+
+* Regenerated ASCII wordmark for CLI `--help` (stable terminal rendering)
+* Compact SVG brand mark on the landing site
+* Logo generation helpers (`logo.rb`, `generate_ascii.py`)
+
+### Notes
+
+* Homebrew: update formula `url` / `sha256` after tagging `v0.1.3`
+* CLI version: `0.1.3` · site package: `0.1.3`
+
 ## [v0.1.2] — 2026-07-18
 
 CLI quality pass: richer flags, safer matching, recursive scan, and JSON output.
@@ -60,6 +75,7 @@ Initial CLI release.
 * Output modes: `--plain`, `--summary-only`, `--flat`
 * Homebrew tap install via [StackwiseTechnologiesLtd/tools](https://github.com/StackwiseTechnologiesLtd/homebrew-tools)
 
+[v0.1.3]: https://github.com/StackwiseTechnologiesLtd/git-recap/releases/tag/v0.1.3
 [v0.1.2]: https://github.com/StackwiseTechnologiesLtd/git-recap/releases/tag/v0.1.2
 [v0.1.1]: https://github.com/StackwiseTechnologiesLtd/git-recap/releases/tag/v0.1.1
 [v0.1.0]: https://github.com/StackwiseTechnologiesLtd/git-recap/releases/tag/v0.1.0

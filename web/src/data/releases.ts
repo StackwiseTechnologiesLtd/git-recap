@@ -8,6 +8,18 @@ export type Release = {
 
 export const releases: Release[] = [
   {
+    version: "v0.1.3",
+    date: "2026-07-18",
+    title: "Brand refresh: ASCII help logo and compact site mark",
+    github:
+      "https://github.com/StackwiseTechnologiesLtd/git-recap/releases/tag/v0.1.3",
+    highlights: [
+      "Updated CLI --help ASCII wordmark with stable terminal rendering",
+      "Compact SVG brand mark on the marketing site",
+      "Logo generation helpers for ASCII / SVG assets",
+    ],
+  },
+  {
     version: "v0.1.2",
     date: "2026-07-18",
     title: "CLI quality: recursive scan, JSON, author & color controls",

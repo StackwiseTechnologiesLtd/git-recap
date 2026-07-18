@@ -8,7 +8,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Defaults / configuration
 # ---------------------------------------------------------------------------
-VERSION="0.1.2"
+VERSION="0.1.3"
 SINCE="${GIT_RECAP_SINCE:-1 day ago}"
 UNTIL="${GIT_RECAP_UNTIL:-}"
 MAX_SUBJECT_LENGTH="${GIT_RECAP_MAX_SUBJECT_LENGTH:-88}"

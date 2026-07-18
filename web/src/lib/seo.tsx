@@ -101,7 +101,7 @@ export function softwareApplicationJsonLd() {
     url: absoluteUrl("/"),
     downloadUrl: siteConfig.github,
     installUrl: absoluteUrl("/docs#install"),
-    softwareVersion: "0.1.2",
+    softwareVersion: "0.1.3",
     license: "https://opensource.org/licenses/MIT",
     offers: {
       "@type": "Offer",
