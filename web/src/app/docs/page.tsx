@@ -149,10 +149,10 @@ export default function DocsPage() {
 
         <nav
           aria-label="Docs sections"
-          className="sticky top-[4.5rem] z-40 mt-8 border-y border-line bg-bg sm:top-[5rem]"
+          className="sticky top-[4.5rem] z-40 mt-8 bg-bg sm:top-[5rem]"
         >
-          <div className="mx-auto max-w-3xl px-5 sm:px-8">
-            <div className="flex gap-x-5 overflow-x-auto py-3.5 text-sm text-muted [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mx-auto max-w-3xl px-5 sm:px-8 py-2">
+            <div className="flex gap-x-5 overflow-x-auto py-3.5 text-sm text-muted [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden border border-line rounded-xl px-2">
               <a
                 href="#install"
                 className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
@@ -194,126 +194,125 @@ export default function DocsPage() {
         </nav>
 
         <div className="mx-auto max-w-3xl px-5 sm:px-8">
-        <section id="install" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
-          <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
-          <p className="mt-3 text-muted">Homebrew (recommended):</p>
-          <div className="mt-5">
-            <CopyCommand command={BREW_INSTALL} />
-          </div>
-          <p className="mt-8 text-sm text-muted">
-            Modern Homebrew requires{" "}
-            <code className="font-mono text-xs text-fg/80">brew trust</code> for
-            third-party taps. Or install from source — see the{" "}
-            <a
-              href="https://github.com/StackwiseTechnologiesLtd/git-recap#from-source"
-              className="text-accent hover:underline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              GitHub README
-            </a>
-            .
-          </p>
-        </section>
-
-        <section id="usage" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
-          <h2 className="text-2xl font-semibold tracking-tight">Usage</h2>
-          <p className="mt-3 text-muted">
-            Groups commits into Features, Fixes, Docs, Refactors, Tests,
-            Performance, Chores, and Other. Conventional prefixes like{" "}
-            <code className="font-mono text-xs text-fg/80">feat:</code> are
-            stripped; long subjects shorten at word boundaries.
-          </p>
-          <div className="mt-8 overflow-hidden rounded-2xl border border-term-border bg-term-bg">
-            {commands.map((item, i) => (
-              <div
-                key={item.cmd}
-                className={`flex flex-col gap-1 px-4 py-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 ${
-                  i < commands.length - 1 ? "border-b border-term-border" : ""
-                }`}
+          <section id="install" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
+            <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
+            <p className="mt-3 text-muted">Homebrew (recommended):</p>
+            <div className="mt-5">
+              <CopyCommand command={BREW_INSTALL} />
+            </div>
+            <p className="mt-8 text-sm text-muted">
+              Modern Homebrew requires{" "}
+              <code className="font-mono text-xs text-fg/80">brew trust</code> for
+              third-party taps. Or install from source — see the{" "}
+              <a
+                href="https://github.com/StackwiseTechnologiesLtd/git-recap#from-source"
+                className="text-accent hover:underline"
+                target="_blank"
+                rel="noreferrer"
               >
-                <code className="font-mono text-[13px] text-term-fg sm:text-sm">
-                  <span className="text-term-prompt select-none">$ </span>
-                  {item.cmd}
-                </code>
-                <span className="shrink-0 text-sm text-term-muted">{item.note}</span>
-              </div>
-            ))}
-          </div>
-        </section>
+                GitHub README
+              </a>
+              .
+            </p>
+          </section>
 
-        <section id="timeframe" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
-          <h2 className="text-2xl font-semibold tracking-tight">Timeframe</h2>
-          <p className="mt-3 text-muted">
-            Values pass through to{" "}
-            <code className="font-mono text-xs text-fg/80">git log --since</code>
-            , so any Git date expression works.{" "}
-            <code className="font-mono text-xs text-fg/80">--yesterday</code> uses{" "}
-            <code className="font-mono text-xs text-fg/80">
-              --since &quot;yesterday 00:00&quot; --until &quot;today 00:00&quot;
-            </code>
-            .
-          </p>
-          <DocTable
-            headers={["Method", "Example"]}
-            rows={timeframes.map((r) => [r.method, r.example])}
-          />
-        </section>
+          <section id="usage" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
+            <h2 className="text-2xl font-semibold tracking-tight">Usage</h2>
+            <p className="mt-3 text-muted">
+              Groups commits into Features, Fixes, Docs, Refactors, Tests,
+              Performance, Chores, and Other. Conventional prefixes like{" "}
+              <code className="font-mono text-xs text-fg/80">feat:</code> are
+              stripped; long subjects shorten at word boundaries.
+            </p>
+            <div className="mt-8 overflow-hidden rounded-2xl border border-term-border bg-term-bg">
+              {commands.map((item, i) => (
+                <div
+                  key={item.cmd}
+                  className={`flex flex-col gap-1 px-4 py-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 ${i < commands.length - 1 ? "border-b border-term-border" : ""
+                    }`}
+                >
+                  <code className="font-mono text-[13px] text-term-fg sm:text-sm">
+                    <span className="text-term-prompt select-none">$ </span>
+                    {item.cmd}
+                  </code>
+                  <span className="shrink-0 text-sm text-term-muted">{item.note}</span>
+                </div>
+              ))}
+            </div>
+          </section>
 
-        <section id="routing" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
-          <h2 className="text-2xl font-semibold tracking-tight">Routing</h2>
-          <p className="mt-3 text-muted">
-            Repositories with no commits by you in the timeframe are omitted.
-            Single-repo runs skip the duplicate standup summary block.
-          </p>
-          <DocTable
-            headers={["Situation", "Behavior"]}
-            rows={routing.map((r) => [r.situation, r.behavior])}
-          />
-        </section>
+          <section id="timeframe" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
+            <h2 className="text-2xl font-semibold tracking-tight">Timeframe</h2>
+            <p className="mt-3 text-muted">
+              Values pass through to{" "}
+              <code className="font-mono text-xs text-fg/80">git log --since</code>
+              , so any Git date expression works.{" "}
+              <code className="font-mono text-xs text-fg/80">--yesterday</code> uses{" "}
+              <code className="font-mono text-xs text-fg/80">
+                --since &quot;yesterday 00:00&quot; --until &quot;today 00:00&quot;
+              </code>
+              .
+            </p>
+            <DocTable
+              headers={["Method", "Example"]}
+              rows={timeframes.map((r) => [r.method, r.example])}
+            />
+          </section>
 
-        <section id="options" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
-          <h2 className="text-2xl font-semibold tracking-tight">Options</h2>
-          <ul className="mt-8 space-y-5">
-            {options.map((opt) => (
-              <li key={opt.flag}>
-                <code className="font-mono text-sm text-accent">{opt.flag}</code>
-                <p className="mt-1 text-sm leading-relaxed text-muted">{opt.desc}</p>
+          <section id="routing" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
+            <h2 className="text-2xl font-semibold tracking-tight">Routing</h2>
+            <p className="mt-3 text-muted">
+              Repositories with no commits by you in the timeframe are omitted.
+              Single-repo runs skip the duplicate standup summary block.
+            </p>
+            <DocTable
+              headers={["Situation", "Behavior"]}
+              rows={routing.map((r) => [r.situation, r.behavior])}
+            />
+          </section>
+
+          <section id="options" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
+            <h2 className="text-2xl font-semibold tracking-tight">Options</h2>
+            <ul className="mt-8 space-y-5">
+              {options.map((opt) => (
+                <li key={opt.flag}>
+                  <code className="font-mono text-sm text-accent">{opt.flag}</code>
+                  <p className="mt-1 text-sm leading-relaxed text-muted">{opt.desc}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section id="requirements" className="scroll-mt-40 py-14 sm:scroll-mt-44">
+            <h2 className="text-2xl font-semibold tracking-tight">Requirements</h2>
+            <ul className="mt-5 list-disc space-y-2 pl-5 text-muted">
+              <li>Bash</li>
+              <li>
+                Git with{" "}
+                <code className="font-mono text-xs text-fg/80">user.email</code> or{" "}
+                <code className="font-mono text-xs text-fg/80">user.name</code>{" "}
+                configured
               </li>
-            ))}
-          </ul>
-        </section>
-
-        <section id="requirements" className="scroll-mt-40 py-14 sm:scroll-mt-44">
-          <h2 className="text-2xl font-semibold tracking-tight">Requirements</h2>
-          <ul className="mt-5 list-disc space-y-2 pl-5 text-muted">
-            <li>Bash</li>
-            <li>
-              Git with{" "}
-              <code className="font-mono text-xs text-fg/80">user.email</code> or{" "}
-              <code className="font-mono text-xs text-fg/80">user.name</code>{" "}
-              configured
-            </li>
-          </ul>
-          <pre className="mt-6 overflow-x-auto rounded-2xl border border-term-border bg-term-bg px-4 py-4 font-mono text-[13px] leading-relaxed text-term-fg sm:text-sm">
-            <span className="text-term-prompt select-none">$ </span>
-            git config --global user.email &quot;you@example.com&quot;{"\n"}
-            <span className="text-term-prompt select-none">$ </span>
-            git config --global user.name &quot;Your Name&quot;
-          </pre>
-          <p className="mt-8 text-sm text-muted">
-            Prefer reading on GitHub? Source and contributing notes live in the{" "}
-            <a
-              href="https://github.com/StackwiseTechnologiesLtd/git-recap"
-              className="text-accent hover:underline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              repository
-            </a>
-            .
-          </p>
-        </section>
+            </ul>
+            <pre className="mt-6 overflow-x-auto rounded-2xl border border-term-border bg-term-bg px-4 py-4 font-mono text-[13px] leading-relaxed text-term-fg sm:text-sm">
+              <span className="text-term-prompt select-none">$ </span>
+              git config --global user.email &quot;you@example.com&quot;{"\n"}
+              <span className="text-term-prompt select-none">$ </span>
+              git config --global user.name &quot;Your Name&quot;
+            </pre>
+            <p className="mt-8 text-sm text-muted">
+              Prefer reading on GitHub? Source and contributing notes live in the{" "}
+              <a
+                href="https://github.com/StackwiseTechnologiesLtd/git-recap"
+                className="text-accent hover:underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                repository
+              </a>
+              .
+            </p>
+          </section>
         </div>
       </main>
 
