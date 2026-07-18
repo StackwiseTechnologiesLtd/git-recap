@@ -51,7 +51,9 @@ The site uses Next.js `output: "export"` so Render can host it as a static site.
 | Build Command | `npm install && npm run build` |
 | Publish Directory | `out` |
 
-Set `NEXT_PUBLIC_SITE_URL` to the production origin (e.g. `https://git-recap.onrender.com`) for canonical/OG URLs.
+Set `NEXT_PUBLIC_SITE_URL` to the production origin for canonical/OG URLs (defaults to `https://git-recap.onrender.com` in production builds).
+
+Live site: [https://git-recap.onrender.com/](https://git-recap.onrender.com/)
 
 ## Project map
 

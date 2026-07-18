@@ -43,6 +43,11 @@ export function getSiteUrl(): string {
     return vercel.startsWith("http") ? vercel.replace(/\/$/, "") : `https://${vercel.replace(/\/$/, "")}`;
   }
 
+  // Production default (Render static site). Override with NEXT_PUBLIC_SITE_URL for custom domains.
+  if (process.env.NODE_ENV === "production") {
+    return "https://git-recap.onrender.com";
+  }
+
   return "http://localhost:3000";
 }
 
