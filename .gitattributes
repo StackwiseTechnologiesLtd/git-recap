@@ -1,0 +1,17 @@
+# GitHub Linguist — language stats should reflect the product (Bash CLI + Homebrew),
+# not the marketing site under web/.
+# https://github.com/github-linguist/linguist/blob/main/docs/overrides.md
+
+# Core CLI
+bin/git-recap linguist-language=Shell
+bin/git-recap linguist-detectable=true
+tests/**/*.sh linguist-language=Shell
+tests/**/*.sh linguist-detectable=true
+
+# Homebrew formula
+*.rb linguist-language=Ruby
+*.rb linguist-detectable=true
+
+# Landing site — keep in the repo, exclude from language bar
+web/** linguist-documentation
+web/** linguist-detectable=false
