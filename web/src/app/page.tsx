@@ -5,10 +5,47 @@ import { Reveal } from "@/components/Reveal";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TerminalWindow } from "@/components/TerminalWindow";
+import {
+  JsonLd,
+  buildMetadata,
+  faqJsonLd,
+  softwareApplicationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = buildMetadata({
+  path: "/",
+  description:
+    "git-recap aggregates your local Git commits into standup-ready summaries. Offline, private, zero-dependency Bash CLI. Install with Homebrew in seconds.",
+});
 
 const BREW_INSTALL =
   "brew tap StackwiseTechnologiesLtd/tools && brew trust StackwiseTechnologiesLtd/tools && brew install git-recap";
+
+const homeFaqs = [
+  {
+    question: "What is git-recap?",
+    answer:
+      "git-recap is a zero-dependency Bash CLI that reads local Git history and turns your commits into grouped, paste-ready standup summaries — fully offline.",
+  },
+  {
+    question: "How do I install git-recap?",
+    answer:
+      "Install with Homebrew: brew tap StackwiseTechnologiesLtd/tools && brew trust StackwiseTechnologiesLtd/tools && brew install git-recap.",
+  },
+  {
+    question: "Does git-recap send data to a server?",
+    answer:
+      "No. By default git-recap only reads local .git state. Optional --reviews uses the authenticated GitHub CLI (gh) when you explicitly ask for PR reviews.",
+  },
+  {
+    question: "Can git-recap scan multiple repositories?",
+    answer:
+      "Yes. Run it from a parent folder to scan immediate subdirectories, pass paths as arguments, or use --recursive for deep scans.",
+  },
+];
 
 const heroLines = [
   { kind: "title" as const, text: "my-app · 8 commits · since 1 day ago" },
@@ -115,6 +152,9 @@ const helpRows = [
 export default function Home() {
   return (
     <div className="bg-atmosphere relative min-h-screen overflow-x-hidden">
+      <JsonLd data={softwareApplicationJsonLd()} />
+      <JsonLd data={websiteJsonLd()} />
+      <JsonLd data={faqJsonLd(homeFaqs)} />
       <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
       <SiteHeader />
 
@@ -361,6 +401,22 @@ export default function Home() {
                 </Link>
                 .
               </p>
+            </Reveal>
+
+            <Reveal className="mx-auto mt-14 max-w-2xl" delay={1}>
+              <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl">
+                Frequently asked questions
+              </h2>
+              <dl className="mt-8 space-y-6">
+                {homeFaqs.map((item) => (
+                  <div key={item.question} className="border-t border-line pt-6 first:border-0 first:pt-0">
+                    <dt className="font-medium text-fg">{item.question}</dt>
+                    <dd className="mt-2 text-sm leading-relaxed text-muted">
+                      {item.answer}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             </Reveal>
           </div>
         </section>

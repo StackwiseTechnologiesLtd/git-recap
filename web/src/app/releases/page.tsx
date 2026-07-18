@@ -1,18 +1,32 @@
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { releases } from "@/data/releases";
+import { JsonLd, breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "Releases · git-recap",
+export const metadata: Metadata = buildMetadata({
+  title: "Releases",
+  path: "/releases",
   description:
-    "Version history for git-recap — CLI and website release notes.",
-};
+    "git-recap release history — CLI and website changelog for every public version.",
+  keywords: [
+    "git-recap releases",
+    "git-recap changelog",
+    "git-recap versions",
+    "standup CLI releases",
+  ],
+});
 
 export default function ReleasesPage() {
   return (
     <div className="bg-atmosphere relative min-h-screen overflow-x-hidden">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Releases", path: "/releases" },
+        ])}
+      />
       <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
       <SiteHeader />
 
@@ -29,58 +43,46 @@ export default function ReleasesPage() {
 
         <ol className="mt-14 space-y-12">
           {releases.map((release) => (
-            <li key={release.version} className="relative pl-6">
-              <span
-                className="absolute top-1.5 left-0 h-2.5 w-2.5 rounded-full bg-accent"
-                aria-hidden
-              />
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h2 className="text-2xl font-semibold tracking-tight text-fg">
-                  {release.version}
+            <li key={release.version} id={release.version} className="scroll-mt-28">
+              <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                <h2 className="text-2xl font-semibold tracking-tight">
+                  <a href={`#${release.version}`} className="hover:text-accent">
+                    {release.version}
+                  </a>
                 </h2>
                 <time
                   dateTime={release.date}
-                  className="font-mono text-xs tracking-wide text-faint"
+                  className="font-mono text-sm text-muted"
                 >
                   {release.date}
                 </time>
               </div>
-              <p className="mt-2 text-base text-muted">{release.title}</p>
-              <ul className="mt-5 space-y-2.5 text-sm leading-relaxed text-muted">
+              <p className="mt-3 text-muted">{release.title}</p>
+              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-fg">
                 {release.highlights.map((item) => (
-                  <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-accent" />
-                    <span>{item}</span>
-                  </li>
+                  <li key={item}>{item}</li>
                 ))}
               </ul>
               {release.github ? (
-                <a
-                  href={release.github}
-                  className="mt-5 inline-block text-sm text-accent transition hover:underline"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  View on GitHub →
-                </a>
+                <p className="mt-4 text-sm">
+                  <a
+                    href={release.github}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-accent hover:underline"
+                  >
+                    View on GitHub →
+                  </a>
+                </p>
               ) : null}
             </li>
           ))}
         </ol>
 
         <p className="mt-16 text-sm text-muted">
-          Prefer GitHub releases?{" "}
-          <a
-            href="https://github.com/StackwiseTechnologiesLtd/git-recap/releases"
-            className="text-accent hover:underline"
-            target="_blank"
-            rel="noreferrer"
-          >
-            github.com/.../releases
-          </a>
-          . Docs live on the{" "}
-          <Link href="/docs" className="text-accent hover:underline">
-            docs page
+          Looking for install steps? See the{" "}
+          <Link href="/docs#install" className="text-accent hover:underline">
+            docs
           </Link>
           .
         </p>

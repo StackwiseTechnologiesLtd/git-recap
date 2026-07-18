@@ -32,10 +32,27 @@ test("releases page lists version history", () => {
 });
 
 test("favicon is configured", () => {
-  const layout = readFileSync(join(root, "src/app/layout.tsx"), "utf8");
-  assert.match(layout, /favicon\.svg/);
+  const seo = readFileSync(join(root, "src/lib/seo.tsx"), "utf8");
+  assert.match(seo, /favicon\.svg/);
   assert.ok(
     readFileSync(join(root, "public/favicon.svg"), "utf8").includes("#541111"),
+  );
+});
+
+test("SEO routes and structured data are present", () => {
+  const seo = readFileSync(join(root, "src/lib/seo.tsx"), "utf8");
+  const site = readFileSync(join(root, "src/lib/site.ts"), "utf8");
+  const home = readFileSync(join(root, "src/app/page.tsx"), "utf8");
+  assert.match(site, /getSiteUrl/);
+  assert.match(seo, /metadataBase|openGraph|twitter|SoftwareApplication/);
+  assert.match(home, /faqJsonLd|softwareApplicationJsonLd/);
+  assert.ok(readFileSync(join(root, "src/app/sitemap.ts"), "utf8").includes("sitemap"));
+  assert.ok(readFileSync(join(root, "src/app/robots.ts"), "utf8").includes("robots"));
+  assert.ok(
+    readFileSync(join(root, "src/app/opengraph-image.tsx"), "utf8").includes("ImageResponse"),
+  );
+  assert.ok(
+    readFileSync(join(root, "src/app/manifest.ts"), "utf8").includes("manifest"),
   );
 });
 

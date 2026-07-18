@@ -1,13 +1,24 @@
 import { CopyCommand } from "@/components/CopyCommand";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { JsonLd, breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Docs · git-recap",
+export const metadata: Metadata = buildMetadata({
+  title: "Docs",
+  path: "/docs",
   description:
-    "Install, usage, timeframes, routing, and options for git-recap — the offline standup summary CLI.",
-};
+    "Install git-recap with Homebrew, learn timeframes, routing, --reviews, JSON output, and every CLI option for offline standup summaries.",
+  keywords: [
+    "git-recap docs",
+    "git-recap install",
+    "homebrew git-recap",
+    "git standup CLI usage",
+    "git-recap --today",
+    "git-recap --reviews",
+  ],
+});
+
 
 const BREW_INSTALL =
   "brew tap StackwiseTechnologiesLtd/tools && brew trust StackwiseTechnologiesLtd/tools && brew install git-recap";
@@ -110,44 +121,80 @@ const options = [
 
 export default function DocsPage() {
   return (
-    <div className="bg-atmosphere relative min-h-screen overflow-x-hidden">
+    <div className="bg-atmosphere relative min-h-screen">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Docs", path: "/docs" },
+        ])}
+      />
       <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
       <SiteHeader />
 
-      <main className="relative mx-auto max-w-3xl px-5 pb-12 pt-28 sm:px-8 sm:pb-16 sm:pt-32">
-        <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
-          Documentation
-        </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-          git-recap docs
-        </h1>
-        <p className="mt-4 text-lg leading-relaxed text-muted">
-          Aggregate your local Git commit messages into standup-ready summaries.
-          Entirely offline — no remotes, no APIs, nothing leaves your machine.
-        </p>
+      <main className="relative pb-12 sm:pb-16">
+        <div className="mx-auto max-w-3xl px-5 pt-28 sm:px-8 sm:pt-32">
+          <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
+            Documentation
+          </p>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+            git-recap docs
+          </h1>
+          <p className="mt-4 text-lg leading-relaxed text-muted">
+            Aggregate your local Git commit messages into standup-ready summaries.
+            Private by default — offline from local Git, with optional{" "}
+            <code className="font-mono text-sm text-fg">--reviews</code> via{" "}
+            <code className="font-mono text-sm text-fg">gh</code>.
+          </p>
+        </div>
 
-        <nav className="mt-10 flex flex-wrap gap-x-5 gap-y-2 border-b border-line pb-6 text-sm text-muted">
-          <a href="#install" className="hover:text-accent">
-            Install
-          </a>
-          <a href="#usage" className="hover:text-accent">
-            Usage
-          </a>
-          <a href="#timeframe" className="hover:text-accent">
-            Timeframe
-          </a>
-          <a href="#routing" className="hover:text-accent">
-            Routing
-          </a>
-          <a href="#options" className="hover:text-accent">
-            Options
-          </a>
-          <a href="#requirements" className="hover:text-accent">
-            Requirements
-          </a>
+        <nav
+          aria-label="Docs sections"
+          className="sticky top-[4.5rem] z-40 mt-8 border-y border-line bg-bg sm:top-[5rem]"
+        >
+          <div className="mx-auto max-w-3xl px-5 sm:px-8">
+            <div className="flex gap-x-5 overflow-x-auto py-3.5 text-sm text-muted [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <a
+                href="#install"
+                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+              >
+                Install
+              </a>
+              <a
+                href="#usage"
+                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+              >
+                Usage
+              </a>
+              <a
+                href="#timeframe"
+                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+              >
+                Timeframe
+              </a>
+              <a
+                href="#routing"
+                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+              >
+                Routing
+              </a>
+              <a
+                href="#options"
+                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+              >
+                Options
+              </a>
+              <a
+                href="#requirements"
+                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+              >
+                Requirements
+              </a>
+            </div>
+          </div>
         </nav>
 
-        <section id="install" className="scroll-mt-28 border-b border-line py-14">
+        <div className="mx-auto max-w-3xl px-5 sm:px-8">
+        <section id="install" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
           <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
           <p className="mt-3 text-muted">Homebrew (recommended):</p>
           <div className="mt-5">
@@ -169,7 +216,7 @@ export default function DocsPage() {
           </p>
         </section>
 
-        <section id="usage" className="scroll-mt-28 border-b border-line py-14">
+        <section id="usage" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
           <h2 className="text-2xl font-semibold tracking-tight">Usage</h2>
           <p className="mt-3 text-muted">
             Groups commits into Features, Fixes, Docs, Refactors, Tests,
@@ -195,7 +242,7 @@ export default function DocsPage() {
           </div>
         </section>
 
-        <section id="timeframe" className="scroll-mt-28 border-b border-line py-14">
+        <section id="timeframe" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
           <h2 className="text-2xl font-semibold tracking-tight">Timeframe</h2>
           <p className="mt-3 text-muted">
             Values pass through to{" "}
@@ -213,7 +260,7 @@ export default function DocsPage() {
           />
         </section>
 
-        <section id="routing" className="scroll-mt-28 border-b border-line py-14">
+        <section id="routing" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
           <h2 className="text-2xl font-semibold tracking-tight">Routing</h2>
           <p className="mt-3 text-muted">
             Repositories with no commits by you in the timeframe are omitted.
@@ -225,7 +272,7 @@ export default function DocsPage() {
           />
         </section>
 
-        <section id="options" className="scroll-mt-28 border-b border-line py-14">
+        <section id="options" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
           <h2 className="text-2xl font-semibold tracking-tight">Options</h2>
           <ul className="mt-8 space-y-5">
             {options.map((opt) => (
@@ -237,7 +284,7 @@ export default function DocsPage() {
           </ul>
         </section>
 
-        <section id="requirements" className="scroll-mt-28 py-14">
+        <section id="requirements" className="scroll-mt-40 py-14 sm:scroll-mt-44">
           <h2 className="text-2xl font-semibold tracking-tight">Requirements</h2>
           <ul className="mt-5 list-disc space-y-2 pl-5 text-muted">
             <li>Bash</li>
@@ -267,6 +314,7 @@ export default function DocsPage() {
             .
           </p>
         </section>
+        </div>
       </main>
 
       <SiteFooter />
