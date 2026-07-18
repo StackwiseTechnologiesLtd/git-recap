@@ -37,9 +37,21 @@ npm install
 npm run dev      # http://localhost:3000
 npm run lint
 npm test         # smoke tests in tests/
-npm run build
-npm start
+npm run build    # static export → out/
+npm start        # serve out/ locally
 ```
+
+## Deploy (Render static site)
+
+The site uses Next.js `output: "export"` so Render can host it as a static site.
+
+| Setting | Value |
+|---------|--------|
+| Root Directory | `web` |
+| Build Command | `npm install && npm run build` |
+| Publish Directory | `out` |
+
+Set `NEXT_PUBLIC_SITE_URL` to the production origin (e.g. `https://git-recap.onrender.com`) for canonical/OG URLs.
 
 ## Project map
 

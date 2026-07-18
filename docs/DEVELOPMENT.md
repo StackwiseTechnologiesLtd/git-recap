@@ -65,9 +65,11 @@ npm install
 npm run dev       # http://localhost:3000
 npm run lint
 npm test
-npm run build
-npm start         # production server after build
+npm run build     # static export → web/out/
+npm start         # serve out/ locally
 ```
+
+Deploy on Render as a static site: root `web`, build `npm install && npm run build`, publish directory `out`.
 
 ### Design tokens
 

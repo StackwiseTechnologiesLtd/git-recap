@@ -62,3 +62,9 @@ test("package scripts expose lint and build", () => {
   assert.equal(typeof pkg.scripts.build, "string");
   assert.equal(typeof pkg.scripts.test, "string");
 });
+
+test("Next.js is configured for static export", () => {
+  const config = readFileSync(join(root, "next.config.ts"), "utf8");
+  assert.match(config, /output:\s*["']export["']/);
+  assert.match(config, /unoptimized:\s*true/);
+});
