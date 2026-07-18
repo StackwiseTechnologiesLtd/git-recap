@@ -132,7 +132,7 @@ export default function DocsPage() {
       <SiteHeader />
 
       <main className="relative pb-12 sm:pb-16">
-        <div className="mx-auto max-w-3xl px-5 pt-28 sm:px-8 sm:pt-32">
+        <div className="mx-auto max-w-5xl px-5 pt-28 sm:px-8 sm:pt-32">
           <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
             Documentation
           </p>
@@ -151,7 +151,7 @@ export default function DocsPage() {
           aria-label="Docs sections"
           className="sticky top-[4.5rem] z-40 mt-8 bg-bg sm:top-[5rem]"
         >
-          <div className="mx-auto max-w-3xl px-5 sm:px-8 py-2">
+          <div className="mx-auto max-w-5xl px-5 sm:px-8 py-2">
             <div className="flex gap-x-5 overflow-x-auto py-3.5 text-sm text-muted [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden border border-line rounded-xl px-2">
               <a
                 href="#install"
@@ -193,8 +193,8 @@ export default function DocsPage() {
           </div>
         </nav>
 
-        <div className="mx-auto max-w-3xl px-5 sm:px-8">
-          <section id="install" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
+        <div className="mx-auto max-w-5xl px-5 sm:px-8">
+          <section id="install" className="scroll-mt-40 py-14 sm:scroll-mt-44">
             <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
             <p className="mt-3 text-muted">Homebrew (recommended):</p>
             <div className="mt-5">
@@ -216,7 +216,7 @@ export default function DocsPage() {
             </p>
           </section>
 
-          <section id="usage" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
+          <section id="usage" className="scroll-mt-40 py-14 sm:scroll-mt-44">
             <h2 className="text-2xl font-semibold tracking-tight">Usage</h2>
             <p className="mt-3 text-muted">
               Groups commits into Features, Fixes, Docs, Refactors, Tests,
@@ -241,7 +241,7 @@ export default function DocsPage() {
             </div>
           </section>
 
-          <section id="timeframe" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
+          <section id="timeframe" className="scroll-mt-40 py-14 sm:scroll-mt-44">
             <h2 className="text-2xl font-semibold tracking-tight">Timeframe</h2>
             <p className="mt-3 text-muted">
               Values pass through to{" "}
@@ -259,7 +259,7 @@ export default function DocsPage() {
             />
           </section>
 
-          <section id="routing" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
+          <section id="routing" className="scroll-mt-40 py-14 sm:scroll-mt-44">
             <h2 className="text-2xl font-semibold tracking-tight">Routing</h2>
             <p className="mt-3 text-muted">
               Repositories with no commits by you in the timeframe are omitted.
@@ -271,7 +271,7 @@ export default function DocsPage() {
             />
           </section>
 
-          <section id="options" className="scroll-mt-40 border-b border-line py-14 sm:scroll-mt-44">
+          <section id="options" className="scroll-mt-40 py-14 sm:scroll-mt-44">
             <h2 className="text-2xl font-semibold tracking-tight">Options</h2>
             <ul className="mt-8 space-y-5">
               {options.map((opt) => (

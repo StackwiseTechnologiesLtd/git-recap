@@ -12,7 +12,7 @@ const links = [
   },
   {
     href: "https://github.com/StackwiseTechnologiesLtd/homebrew-tools",
-    label: "Homebrew tap",
+    label: "Homebrew",
     external: true,
   },
 ];
@@ -21,7 +21,7 @@ export function SiteFooter() {
   return (
     <footer className="relative z-10 px-4 pb-6 pt-2 sm:px-6 sm:pb-8">
       <div className="mx-auto max-w-5xl">
-        <div className="rounded-2xl border border-line-strong bg-bg px-4 py-4 sm:px-5">
+        <div className="rounded-2xl border-t border-line-strong bg-bg px-4 py-4 sm:px-5">
           <div className="flex flex-col gap-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
             <p className="flex justify-center items-center gap-2">
               <Image
@@ -33,7 +33,7 @@ export function SiteFooter() {
               />
               <span>© {new Date().getFullYear()} git-recap</span>
             </p>
-            <nav className="flex flex-wrap gap-x-5 gap-y-2">
+            <nav className="flex flex-wrap gap-x-5 gap-y-2 justify-between">
               {links.map((link) =>
                 link.external ? (
                   <a

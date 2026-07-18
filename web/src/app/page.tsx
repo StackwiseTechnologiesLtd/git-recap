@@ -183,7 +183,7 @@ export default function Home() {
               <CopyCommand command={BREW_INSTALL} />
             </div>
 
-            <div className="animate-rise-delay-2 mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="animate-rise-delay-2 mt-6 flex flex-row items-center justify-center gap-3">
               <a
                 href="#install"
                 className="inline-flex h-12 items-center justify-center rounded-xl bg-accent-fill px-6 text-sm font-semibold text-white transition hover:bg-accent-fill-hover active:scale-[0.98]"
@@ -211,7 +211,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="features" className="border-t border-line py-20 sm:py-28">
+        <section id="features" className=" py-20 sm:py-28">
           <div className="mx-auto max-w-6xl min-w-0 px-5 sm:px-8">
             <Reveal className="mx-auto max-w-2xl text-center">
               <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
@@ -256,7 +256,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="border-t border-line py-20 sm:py-28">
+        <section className=" py-20 sm:py-28">
           <div className="mx-auto grid max-w-6xl min-w-0 items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
             <Reveal className="min-w-0">
               <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
@@ -295,7 +295,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="border-t border-line py-20 sm:py-28">
+        <section className=" py-20 sm:py-28">
           <div className="mx-auto grid max-w-6xl min-w-0 items-center gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
             <Reveal className="order-2 min-w-0 lg:order-1" delay={1}>
               <div className="panel-hover rounded-2xl border border-line-strong bg-bg-panel p-6 sm:p-8">
@@ -347,7 +347,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="install" className="border-t border-line py-20 sm:py-28">
+        <section id="install" className=" py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
             <Reveal className="mx-auto max-w-2xl text-center">
               <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
@@ -384,7 +384,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="help" className="border-t border-line py-20 sm:py-28">
+        <section id="help" className=" py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
             <Reveal className="mx-auto max-w-2xl text-center">
               <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">

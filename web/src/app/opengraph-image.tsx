@@ -45,7 +45,8 @@ export default function OpenGraphImage() {
               fontWeight: 700,
               color: "#fff",
             }}
-          >
+            >
+            {/* replace with actual logo and colors white keep the parent burgandy */}
             g
           </div>
           <span>{siteConfig.name}</span>
