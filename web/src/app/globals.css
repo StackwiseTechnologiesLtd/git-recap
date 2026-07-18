@@ -42,8 +42,8 @@ html.dark {
   --fg: #f2f2f2;
   --muted: #a3a3a3;
   --faint: #737373;
-  --accent: #d07070;
-  --accent-soft: rgba(208, 112, 112, 0.14);
+  --accent: #541111;
+  --accent-soft: rgba(84, 17, 17, 0.18);
   --accent-fill: #541111;
   --accent-fill-hover: #6a1717;
   --line: rgba(255, 255, 255, 0.08);

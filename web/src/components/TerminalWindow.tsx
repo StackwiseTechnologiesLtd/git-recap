@@ -149,12 +149,12 @@ export function TerminalWindow({
           <div className="text-term-fg">
             <span className="text-term-prompt select-none">$ </span>
             <span>{typed}</span>
-            <span className="invisible" aria-hidden>
-              {command.slice(typed.length)}
-            </span>
             {typing || progress < 0.02 ? (
               <span className="animate-caret text-term-green">▌</span>
             ) : null}
+            <span className="invisible" aria-hidden>
+              {command.slice(typed.length)}
+            </span>
           </div>
 
           <div className="h-2.5 sm:h-3" aria-hidden />
