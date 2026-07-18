@@ -121,8 +121,8 @@ export default function Home() {
       <main className="relative pb-28 sm:pb-32">
         <section className="mx-auto max-w-6xl px-5 pb-16 pt-28 sm:px-8 sm:pb-24 sm:pt-32">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="animate-rise flex flex-col items-center gap-4">
-              <AnimatedLogo size={80} className="sm:scale-110" />
+            <div className="animate-rise flex items-center justify-center gap-3 sm:gap-4">
+              <AnimatedLogo size={56} className="sm:scale-110" />
               <p className="text-2xl font-semibold tracking-tight text-fg sm:text-3xl">
                 git-recap
               </p>

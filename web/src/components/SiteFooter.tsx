@@ -56,7 +56,17 @@ export function SiteFooter() {
                 ),
               )}
             </nav>
-            <p className="text-faint">MIT · Stackwise Technologies</p>
+            <p className="text-faint">
+              MIT ·{" "}
+              <a
+                href="https://stackwisetechnologies.com/"
+                target="_blank"
+                rel="noreferrer"
+                className="transition-colors hover:text-accent"
+              >
+                Stackwise Technologies
+              </a>
+            </p>
           </div>
         </div>
       </div>
