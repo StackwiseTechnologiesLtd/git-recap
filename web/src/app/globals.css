@@ -212,10 +212,10 @@ body {
 .animate-float {
   animation: float-soft 5.5s ease-in-out infinite;
 }
-
-.animate-logo {
+/* uncomment to animate the logo */
+/* .animate-logo {
   animation: float-soft 5.5s ease-in-out infinite;
-}
+} */
 
 .logo-mark {
   transform-origin: 124px 118px;
@@ -288,7 +288,11 @@ body {
     linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 70% 55% at 50% 12%, black, transparent 75%);
+  mask-image: radial-gradient(
+    ellipse 70% 55% at 50% 12%,
+    black,
+    transparent 75%
+  );
 }
 
 .accent-underline {
