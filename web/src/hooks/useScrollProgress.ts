@@ -23,13 +23,21 @@ export function useScrollProgress(
     start?: number;
     /** Viewport fraction where animation completes (element top). Default 0.28 */
     end?: number;
+    /** When false, progress stays at 0 and listeners are skipped. */
+    enabled?: boolean;
   },
 ) {
   const startFrac = options?.start ?? 0.92;
   const endFrac = options?.end ?? 0.28;
+  const enabled = options?.enabled ?? true;
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    if (!enabled) {
+      const id = window.requestAnimationFrame(() => setProgress(0));
+      return () => window.cancelAnimationFrame(id);
+    }
+
     const node = ref.current;
     if (!node) return;
 
@@ -63,7 +71,7 @@ export function useScrollProgress(
       window.removeEventListener("scroll", onScrollOrResize);
       window.removeEventListener("resize", onScrollOrResize);
     };
-  }, [ref, startFrac, endFrac]);
+  }, [ref, startFrac, endFrac, enabled]);
 
   return progress;
 }

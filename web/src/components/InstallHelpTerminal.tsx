@@ -98,11 +98,11 @@ export function InstallHelpTerminal({
                     index < rowCount ? "none" : "translateY(4px)",
                 }}
               >
-                <span className="min-w-0 text-term-fg">
+                <span className="min-w-0 truncate text-term-fg">
                   <span className="text-term-prompt select-none">$ </span>
                   {row.cmd}
                 </span>
-                <span className="text-term-muted sm:text-right">{row.note}</span>
+                <span className="truncate text-term-muted sm:text-right">{row.note}</span>
               </div>
             ))}
           </div>
@@ -110,7 +110,7 @@ export function InstallHelpTerminal({
 
         <div className="mx-auto mt-8 max-w-xl sm:mt-9">
           <div className="rounded-xl border border-term-border bg-term-elevated/80 px-4 py-3.5 sm:px-5">
-            <p className="min-h-[3.25rem] break-all font-mono text-[12px] leading-relaxed text-term-fg sm:min-h-[2.5rem] sm:text-[13px]">
+            <p className="min-h-[3.25rem] break-words font-mono text-[12px] leading-relaxed text-term-fg sm:min-h-[2.5rem] sm:text-[13px]">
               <span className="text-term-muted">{installLabel}: </span>
               <span className="text-term-green">{typedInstall}</span>
               {typingInstall || done ? (

@@ -166,8 +166,7 @@ export default function Home() {
               command="git-recap"
               lines={heroLines}
               caption="one command · smart categories · copy into standup notes"
-              scrollStart={1.05}
-              scrollEnd={0.48}
+              loop
             />
           </div>
         </section>

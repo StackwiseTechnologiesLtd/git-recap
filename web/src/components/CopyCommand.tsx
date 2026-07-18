@@ -24,7 +24,7 @@ export function CopyCommand({ command, className = "" }: CopyCommandProps) {
     <div
       className={`relative overflow-hidden rounded-xl border border-term-border bg-term-bg transition-[transform,border-color] duration-300 hover:-translate-y-0.5 hover:border-white/20 ${className}`}
     >
-      <pre className="overflow-x-auto py-3.5 pr-24 pl-4 font-mono text-[13px] leading-relaxed text-term-fg sm:pr-28 sm:text-sm">
+      <pre className="overflow-hidden py-3.5 pr-24 pl-4 font-mono text-[12px] leading-relaxed break-words whitespace-pre-wrap text-term-fg sm:pr-28 sm:text-sm">
         <span className="text-term-prompt select-none">$ </span>
         {command}
       </pre>
