@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
+import { MenuToggle } from "@/components/MenuToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import Link from "next/link";
+import { useState } from "react";
 
 const links = [
   { href: "/#features", label: "features" },
@@ -67,7 +68,7 @@ export function SiteHeader() {
                 aria-expanded={open}
                 aria-label="Toggle menu"
               >
-                Menu
+                <MenuToggle isOpen={open} />
               </button>
             </div>
           </div>
