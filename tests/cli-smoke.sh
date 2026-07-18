@@ -12,6 +12,7 @@ cleanup() {
   if [[ -n "${TMPDIR_ROOT}" && -d "${TMPDIR_ROOT}" ]]; then
     rm -rf "${TMPDIR_ROOT}"
   fi
+  unset GIT_CONFIG_GLOBAL
 }
 trap cleanup EXIT
 
