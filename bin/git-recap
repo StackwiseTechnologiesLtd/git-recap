@@ -36,7 +36,8 @@ G_FEATURES_ITEMS=''; G_FIXES_ITEMS=''; G_DOCS_ITEMS=''; G_REFACTORS_ITEMS=''
 G_TESTS_ITEMS=''; G_PERFORMANCE_ITEMS=''; G_CHORES_ITEMS=''; G_REVIEWS_ITEMS=''; G_OTHER_ITEMS=''
 
 usage() {
-  printf '\033[38;2;84;17;17m'
+  # Disable line wrapping (\033[?7l) so the ASCII art doesn't scramble on small screens
+  printf '\033[?7l\033[38;2;84;17;17m'
   cat <<'EOF_LOGO'
        .-=*@@@@@@@@@+=:                                                                                            
     .=@@@=-...   ..:-+@@+-                                                                                         
@@ -52,7 +53,8 @@ usage() {
      -@@@+-:.    .:-=+@+               *@*. -=@@@ :@@    *@+  .@@@@+ :@@=@@=  :@@-:::. @@+.  .:  =@@++@@@. *@@---. 
         :=+@@@@@@@@@+-:                 -@@@@@@=  :@@    +@=         :@@  =@@..@@@@@@@  -@@@@@@-:@@.::.=@@ +@=     
 EOF_LOGO
-  printf '\033[0m\n'
+  # Re-enable line wrapping (\033[?7h) and reset color
+  printf '\033[?7h\033[0m\n'
 
   cat <<EOF_USAGE
 Usage: git-recap [options] [path ...]

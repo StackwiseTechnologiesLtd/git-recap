@@ -62,7 +62,7 @@ class GitRecap < Formula
 
   def caveats
     <<~EOS
-      \e[38;2;84;17;17m#{LOGO}\e[0m
+      \e[?7l\e[38;2;84;17;17m#{LOGO}\e[?7h\e[0m
 
       git-recap reads only local .git history (no network).
 
