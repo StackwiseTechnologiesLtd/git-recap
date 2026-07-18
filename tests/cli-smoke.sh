@@ -95,7 +95,8 @@ assert_match "$help_out" "--flat" "--help documents --flat"
 assert_match "$help_out" "--max-length" "--help documents --max-length"
 assert_match "$help_out" "--author" "--help documents --author"
 assert_match "$help_out" "--color" "--help documents --color"
-assert_match "$help_out" "--version" "--help documents --version"
+assert_match "$help_out" "--recursive" "--help documents --recursive"
+assert_match "$help_out" "--json" "--help documents --json"
 
 version_out="$("$SCRIPT" --version)"
 assert_match "$version_out" "git-recap 0\\.1\\." "--version prints version"
@@ -103,6 +104,7 @@ assert_match "$version_out" "git-recap 0\\.1\\." "--version prints version"
 assert_exit 1 "$SCRIPT" --color
 assert_exit 1 "$SCRIPT" --color maybe
 assert_exit 1 "$SCRIPT" --author
+assert_exit 1 "$SCRIPT" --json --flat
 
 # ---------------------------------------------------------------------------
 # Functional fixtures (isolated git identity via temp global config)
@@ -177,6 +179,22 @@ assert_match "$scan_out" "Features|dashboard|auth tokens|Standup" "cwd scan find
 
 # Missing path / non-repo should warn and exit 0
 assert_exit 0 "$SCRIPT" --today "$TMPDIR_ROOT/does-not-exist"
+
+# Nested repo + --recursive
+NEST="$TMPDIR_ROOT/workspace/nested"
+mkdir -p "$NEST"
+init_repo "$NEST" "feat: add nested module"
+cd "$TMPDIR_ROOT/workspace"
+recur_out="$("$SCRIPT" --today --recursive)"
+assert_match "$recur_out" "nested|module|Features" "--recursive finds nested repos"
+
+# JSON output
+cd "$REPO_A"
+json_out="$("$SCRIPT" --today --json)"
+assert_match "$json_out" '"total_commits"' "--json includes total_commits"
+assert_match "$json_out" '"Features"' "--json includes Features category"
+assert_match "$json_out" 'dashboard' "--json includes subject text"
+assert_no_match "$json_out" $'\033\[' "--json has no ANSI"
 
 # ---------------------------------------------------------------------------
 # Summary

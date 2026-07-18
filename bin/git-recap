@@ -8,13 +8,15 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Defaults / configuration
 # ---------------------------------------------------------------------------
-VERSION="0.1.1"
+VERSION="0.1.2"
 SINCE="${GIT_RECAP_SINCE:-1 day ago}"
 UNTIL="${GIT_RECAP_UNTIL:-}"
 MAX_SUBJECT_LENGTH="${GIT_RECAP_MAX_SUBJECT_LENGTH:-88}"
 FLAT=0
 PLAIN=0
 SUMMARY_ONLY=0
+RECURSIVE=0
+JSON=0
 # auto | always | never — NO_COLOR forces never unless --color=always
 COLOR_MODE="${GIT_RECAP_COLOR:-auto}"
 AUTHOR_OVERRIDE="${GIT_RECAP_AUTHOR:-}"
@@ -51,6 +53,9 @@ Options:
                        (\$NO_COLOR implies never unless --color=always)
       --summary-only   Only print the final standup summary block
       --flat           Skip smart grouping; print a flat commit list
+  -r, --recursive      When scanning a folder, find Git repos at any depth
+                       (skips node_modules, vendor, .terraform, dist, build)
+      --json           Machine-readable JSON summary (implies no color)
   -V, --version        Print version and exit
   -h, --help           Show this help
 
@@ -63,6 +68,8 @@ Examples:
   git-recap --summary-only           # just the standup block
   git-recap --flat                   # raw commit list
   git-recap --author "Jane Doe"
+  git-recap -r --today               # deep-scan cwd for repos
+  git-recap --json --today           # script-friendly output
 EOF_USAGE
 }
 
@@ -156,6 +163,14 @@ while [[ $# -gt 0 ]]; do
       FLAT=1
       shift
       ;;
+    -r|--recursive)
+      RECURSIVE=1
+      shift
+      ;;
+    --json)
+      JSON=1
+      shift
+      ;;
     --)
       shift
       TARGETS+=("$@")
@@ -189,6 +204,11 @@ if [[ "$FLAT" -eq 1 && "$SUMMARY_ONLY" -eq 1 ]]; then
   exit 1
 fi
 
+if [[ "$JSON" -eq 1 && "$FLAT" -eq 1 ]]; then
+  echo "error: --json and --flat cannot be used together" >&2
+  exit 1
+fi
+
 case "$COLOR_MODE" in
   auto|always|never) ;;
   *)
@@ -197,6 +217,11 @@ case "$COLOR_MODE" in
     ;;
 esac
 
+# JSON is always plain/monochrome.
+if [[ "$JSON" -eq 1 ]]; then
+  PLAIN=1
+  COLOR_MODE="never"
+fi
 # ---------------------------------------------------------------------------
 # Colors (TTY / --color / NO_COLOR / --plain)
 # ---------------------------------------------------------------------------
@@ -275,6 +300,7 @@ classify_commit() {
   local subject="$1" lower
   lower="$(printf '%s' "$subject" | tr '[:upper:]' '[:lower:]')"
 
+  # Conventional Commits / typed prefixes first (highest confidence).
   case "$lower" in
     feat:*|feat!:*|feat\(*\):*|feat\(*\)!:*|feature:*|feature!:*|feature\(*\):*|feature\(*\)!:*)
       echo Features; return ;;
@@ -292,15 +318,25 @@ classify_commit() {
       echo Chores; return ;;
   esac
 
+  # Keyword heuristics — prefer leading verbs / clear phrases over substring matches
+  # that false-positive (e.g. "prefix" → Fixes, "docker" → Docs).
   case "$lower" in
-    *fix*|*bug*|*hotfix*|*patch*|*resolve*|*repair*|*regress*) echo Fixes ;;
-    *feat*|*feature*|*add\ *|*added\ *|*implement*|*introduce*|*create\ *|*created\ *|*new\ *) echo Features ;;
-    *doc*|*readme*|*comment*|*changelog*) echo Docs ;;
-    *refactor*|*clean*|*simplify*|*restructure*|*rename*|*extract*) echo Refactors ;;
-    *test*|*spec*|*coverage*|*assert*) echo Tests ;;
-    *perf*|*optim*|*speed*|*cache*) echo Performance ;;
-    *chore*|*bump*|*deps*|*dependenc*|*upgrade*|*ci\ *|*build*|*release*|*lint*|*format*) echo Chores ;;
-    *) echo Other ;;
+    fix\ *|fixed\ *|fixes\ *|bugfix\ *|hotfix\ *|repair\ *|resolve\ *|resolved\ *)
+      echo Fixes ;;
+    add\ *|added\ *|implement\ *|implemented\ *|introduce\ *|introduced\ *|create\ *|created\ *|feature\ *)
+      echo Features ;;
+    docs\ *|readme\ *|changelog\ *|document\ *|documented\ *)
+      echo Docs ;;
+    refactor\ *|refactored\ *|clean\ up\ *|simplify\ *|restructure\ *|rename\ *|extract\ *)
+      echo Refactors ;;
+    test\ *|tests\ *|spec\ *|coverage\ *)
+      echo Tests ;;
+    perf\ *|optimis*|*optimiz*|*performance*)
+      echo Performance ;;
+    chore\ *|bump\ *|deps\ *|dependenc*|*upgrade\ *|lint\ *|format\ *)
+      echo Chores ;;
+    *)
+      echo Other ;;
   esac
 }
 
@@ -487,8 +523,8 @@ recap_repo() {
 
   PRINTED_REPOS=$((PRINTED_REPOS + 1))
 
-  # --summary-only accumulates globally and skips per-repo detail.
-  if [[ "$SUMMARY_ONLY" -eq 1 ]]; then
+  # JSON mode / --summary-only accumulate globally and skip per-repo detail.
+  if [[ "$SUMMARY_ONLY" -eq 1 || "$JSON" -eq 1 ]]; then
     return 0
   fi
 
@@ -539,6 +575,81 @@ scan_subdirs() {
     fi
   done
   shopt -u nullglob
+}
+
+# Deep scan: find .git dirs/files, skip heavy/vendor trees.
+scan_subdirs_recursive() {
+  local parent="$1" git_entry repo
+  # Prefer find when available (macOS / Linux).
+  if ! command -v find >/dev/null 2>&1; then
+    scan_subdirs "$parent"
+    return
+  fi
+  while IFS= read -r -d '' git_entry; do
+    repo="$(dirname "$git_entry")"
+    printf '%s\0' "$repo"
+  done < <(
+    find "$parent" \
+      \( -name node_modules -o -name vendor -o -name .terraform -o -name dist -o -name build -o -name .next -o -name target \) -prune -o \
+      \( \( -name .git -type d \) -o \( -name .git -type f \) \) -print0 2>/dev/null
+  )
+}
+
+json_escape() {
+  # Escape a string for JSON (Bash 3.2-safe, no printf %q).
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\t'/\\t}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\n'/\\n}"
+  printf '%s' "$s"
+}
+
+print_json() {
+  local cat count first_cat=1 first_item repo subject hash
+  printf '{\n'
+  printf '  "version": "%s",\n' "$(json_escape "$VERSION")"
+  printf '  "author": "%s",\n' "$(json_escape "$DISPLAY_AUTHOR")"
+  printf '  "since": "%s",\n' "$(json_escape "$SINCE")"
+  printf '  "until": "%s",\n' "$(json_escape "$UNTIL")"
+  printf '  "timeframe": "%s",\n' "$(json_escape "$(timeframe_label)")"
+  printf '  "total_commits": %s,\n' "$TOTAL_COMMITS"
+  printf '  "repos_with_commits": %s,\n' "$PRINTED_REPOS"
+  printf '  "categories": {\n'
+
+  for cat in "${CATEGORIES[@]}"; do
+    count="$(global_count_for_category "$cat")"
+    [[ "$count" -eq 0 ]] && continue
+    if [[ "$first_cat" -eq 0 ]]; then
+      printf ',\n'
+    fi
+    first_cat=0
+    printf '    "%s": [\n' "$(json_escape "$cat")"
+    first_item=1
+    while IFS=$'\t' read -r repo subject hash || [[ -n "${hash:-}" ]]; do
+      [[ -z "${hash:-}" ]] && continue
+      if [[ "$first_item" -eq 0 ]]; then
+        printf ',\n'
+      fi
+      first_item=0
+      printf '      {"repo":"%s","subject":"%s","hash":"%s"}' \
+        "$(json_escape "$repo")" \
+        "$(json_escape "$subject")" \
+        "$(json_escape "$hash")"
+      hash=''
+      subject=''
+      repo=''
+    done <<< "$(global_items_for_category "$cat")"
+    printf '\n    ]'
+  done
+
+  if [[ "$first_cat" -eq 1 ]]; then
+    printf '  }\n'
+  else
+    printf '\n  }\n'
+  fi
+  printf '}\n'
 }
 
 global_count_for_category() {
@@ -614,6 +725,15 @@ print_standup_summary() {
 REPOS=()
 REQUIRE_GIT_DIR=0
 
+collect_scan() {
+  local parent="$1"
+  if [[ "$RECURSIVE" -eq 1 ]]; then
+    scan_subdirs_recursive "$parent"
+  else
+    scan_subdirs "$parent"
+  fi
+}
+
 if [[ ${#TARGETS[@]} -gt 0 ]]; then
   REQUIRE_GIT_DIR=1
   for target in "${TARGETS[@]}"; do
@@ -621,11 +741,15 @@ if [[ ${#TARGETS[@]} -gt 0 ]]; then
       echo "warning: skipping '${target}' (not a directory)" >&2
       continue
     fi
-    if ! has_git_dir "$target"; then
-      echo "warning: skipping '$(basename "$target")' (not a Git repository)" >&2
-      continue
+    if has_git_dir "$target"; then
+      REPOS+=("$target")
+    elif [[ "$RECURSIVE" -eq 1 ]]; then
+      while IFS= read -r -d '' entry; do
+        REPOS+=("$entry")
+      done < <(collect_scan "$target")
+    else
+      echo "warning: skipping '$(basename "$target")' (not a Git repository; try --recursive)" >&2
     fi
-    REPOS+=("$target")
   done
 elif inside_git_repo "."; then
   REPOS+=(".")
@@ -633,11 +757,17 @@ else
   REQUIRE_GIT_DIR=1
   while IFS= read -r -d '' entry; do
     REPOS+=("$entry")
-  done < <(scan_subdirs ".")
+  done < <(collect_scan ".")
 fi
 
 if [[ ${#REPOS[@]} -eq 0 ]]; then
-  echo "No Git repositories found to recap." >&2
+  if [[ "$JSON" -eq 1 ]]; then
+    TOTAL_COMMITS=0
+    PRINTED_REPOS=0
+    print_json
+  else
+    echo "No Git repositories found to recap." >&2
+  fi
   exit 0
 fi
 
@@ -651,10 +781,14 @@ for repo in "${REPOS[@]}"; do
   fi
 done
 
-if [[ "$printed" -eq 0 ]]; then
+if [[ "$JSON" -eq 1 ]]; then
+  print_json
+elif [[ "$printed" -eq 0 ]]; then
   printf '%sNo commits by %s%s%s %s%s.\n' "$DIM" "$BOLD" "$DISPLAY_AUTHOR" "$RESET$DIM" "$(timeframe_label)" "$RESET"
 else
   print_standup_summary
 fi
 
-printf '\n'
+if [[ "$JSON" -eq 0 ]]; then
+  printf '\n'
+fi

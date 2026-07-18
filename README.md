@@ -1,6 +1,13 @@
 <h1 align="center">
-  <img src="docs/logo.svg" alt="" width="56" height="54" />
-  git-recap
+  <img
+    src="docs/logo.svg"
+    alt=""
+    width="56"
+    height="54"
+    align="absmiddle"
+    style="vertical-align: middle; margin-right: 0.4rem;"
+  />
+  <span style="vertical-align: middle;">git-recap</span>
 </h1>
 
 <p align="center">
@@ -72,6 +79,8 @@ git-recap --plain                  # paste into Slack / notes
 git-recap --color never            # force no ANSI colors
 git-recap --summary-only           # only the standup summary block
 git-recap --flat                   # raw commit list
+git-recap -r --today               # deep-scan folders for repos
+git-recap --json --today           # machine-readable summary
 GIT_RECAP_SINCE="1 week ago" git-recap
 git-recap -V                       # version
 git-recap -h                       # help
