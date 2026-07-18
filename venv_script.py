@@ -10,32 +10,35 @@ cairosvg.svg2png(url=svg_file, write_to=png_file, scale=4, background_color="whi
 
 img = Image.open(png_file).convert('L')
 
-W = 115
-aspect_correction = 0.45
-H = int(W * (238/885) * aspect_correction)
+W = 76 # Good size for normal terminals
+# We calculate height in pixels.
+H_pixels = int(W * (238/885))
+H = H_pixels // 2
+# For half-blocks, 1 char = 2 pixels high. So the final char height will be H_pixels / 2.
+img = img.resize((W, H_pixels), Image.Resampling.LANCZOS)
 
-img = img.resize((W, H), Image.Resampling.LANCZOS)
-pixels = np.array(img)
+pixels = img.load()
+threshold = 128
 
-chars = " .:-=+*#%@"
-# Invert pixels: darker pixels (original #541111 is dark, white is 255)
-# Logo is dark, background is white.
-# So low pixel value -> index near len(chars)-1
-# High pixel value (255) -> index 0 (space)
+lines = []
+for y in range(0, H_pixels, 2):
+    line = ""
+    for x in range(W):
+        top = pixels[x, y] < threshold if y < H_pixels else False
+        bottom = pixels[x, y+1] < threshold if (y+1) < H_pixels else False
+        
+        if top and bottom:
+            line += "█"
+        elif top:
+            line += "▀"
+        elif bottom:
+            line += "▄"
+        else:
+            line += " "
+    # rstrip to avoid unnecessary spaces on the right
+    lines.append(line.rstrip())
 
-ascii_art = []
-for row in pixels:
-    line = []
-    for p in row:
-        # map 0..255 to len(chars)-1 .. 0
-        idx = int((255 - p) / 255.0 * (len(chars) - 1))
-        # Add slight contrast boost
-        if p > 240: idx = 0
-        if p < 80: idx = len(chars) - 1
-        line.append(chars[idx])
-    ascii_art.append("".join(line))
-
-ascii_str = "\n".join(ascii_art)
+ascii_str = "\n".join(lines)
 
 # Write logo.txt
 with open('logo.txt', 'w') as f:
@@ -47,20 +50,5 @@ rb_content = f"LOGO = <<~'ASCII'\n{ascii_str}\nASCII\n\nputs \"\\e[38;2;84;17;17
 with open('logo.rb', 'w') as f:
     f.write(rb_content)
 
-# Write logo.svg
-# SVG with <text> elements
-svg_lines = []
-svg_lines.append('<svg width="100%" height="100%" viewBox="0 0 {} {}" xmlns="http://www.w3.org/2000/svg">'.format(W * 8, H * 16))
-svg_lines.append('<style> text { font-family: monospace; font-size: 14px; fill: #541111; white-space: pre; } </style>')
-svg_lines.append('<rect width="100%" height="100%" fill="white"/>')
-
-for i, line in enumerate(ascii_art):
-    y = (i + 1) * 14
-    svg_lines.append(f'<text x="0" y="{y}">{line}</text>')
-
-svg_lines.append('</svg>')
-
-with open('logo.svg', 'w') as f:
-    f.write("\n".join(svg_lines) + "\n")
 
 print("Done")
