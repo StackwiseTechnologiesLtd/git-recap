@@ -20,7 +20,7 @@ Thanks for helping improve git-recap. This project is a **Bash CLI** plus an opt
 
 1. Search existing issues/PRs to avoid duplicates.
 2. For larger features, open an issue first so we can align on scope.
-3. Keep the CLI **offline** and free of new runtime dependencies (no Node/Python for `bin/git-recap`).
+3. Keep the CLI free of new *required* runtime dependencies (no Node/Python for `bin/git-recap`). Default mode stays offline; optional flags may use tools the user already has (e.g. `gh` for `--reviews`).
 
 ## Development setup
 
@@ -56,7 +56,8 @@ Full details: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 * Keep Bash 3.2–compatible where practical (macOS ships an older Bash).
 * Quote variables; handle spaces in paths safely.
 * Prefer small, readable functions over clever one-liners.
-* Do not add network calls or telemetry.
+* Do not add telemetry. Default operation must work offline from local Git.
+* Optional network features must be explicit opt-in flags and fail softly when the helper tool is missing.
 
 **Web (`web/`)**
 

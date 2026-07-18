@@ -31,14 +31,15 @@
 
 ## Features
 
-* **Smart summaries** — groups commits into Features, Fixes, Docs, Refactors, Tests, Performance, Chores, and Other
+* **Smart summaries** — groups commits into Features, Fixes, Docs, Refactors, Tests, Performance, Chores, Reviews, and Other
 * **Standup-ready** — short, readable bullets with a final copy-friendly summary
 * **Contextual** — run inside a repo to recap just that project
 * **Multi-scan** — run in a parent folder (e.g. `~/Projects`) to scan immediate subdirectories
 * **Targeted** — pass specific paths or repo names as arguments
 * **Reliable author matching** — prefers `git config user.email`, then falls back to `user.name`
-* **Zero dependencies** — pure Bash + `git` plumbing
-* **Private** — entirely offline; nothing leaves your machine
+* **Optional PR reviews** — `--reviews` adds your GitHub PR reviews via the authenticated `gh` CLI
+* **Zero dependencies** — pure Bash + `git` plumbing (and optional `gh` only when you pass `--reviews`)
+* **Private by default** — offline from local Git; network only for explicit `--reviews`
 
 ---
 
@@ -82,6 +83,7 @@ git-recap --color never            # force no ANSI colors
 git-recap --summary-only           # only the standup summary block
 git-recap --flat                   # raw commit list
 git-recap --include-merges         # keep merge commits
+git-recap --reviews --today        # also include your GitHub PR reviews (needs gh)
 git-recap -r --today               # deep-scan folders for repos
 git-recap --json --today           # machine-readable summary
 GIT_RECAP_SINCE="1 week ago" git-recap

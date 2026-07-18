@@ -27,6 +27,7 @@ const commands = [
   { cmd: "git-recap --summary-only", note: "Only the standup summary block" },
   { cmd: "git-recap --flat", note: "Raw commit list (no grouping)" },
   { cmd: "git-recap --include-merges", note: "Keep merge commits" },
+  { cmd: "git-recap --reviews --today", note: "Commits + your GitHub PR reviews (needs gh)" },
   { cmd: "git-recap -r --today", note: "Deep-scan folders for repos" },
   { cmd: "git-recap --json --today", note: "Machine-readable summary" },
   { cmd: 'GIT_RECAP_SINCE="1 week ago" git-recap', note: "Timeframe via env" },
@@ -97,6 +98,10 @@ const options = [
   {
     flag: "--include-merges",
     desc: "Include merge commits (omitted by default)",
+  },
+  {
+    flag: "--reviews",
+    desc: "Include your GitHub PR reviews via authenticated gh (optional network)",
   },
   { flag: "--json", desc: "Machine-readable JSON summary" },
   { flag: "-V, --version", desc: "Print version and exit" },

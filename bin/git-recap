@@ -19,19 +19,21 @@ RECURSIVE=0
 JSON=0
 ALL_AUTHORS=0
 INCLUDE_MERGES=0
+INCLUDE_REVIEWS=0
 # auto | always | never — NO_COLOR forces never unless --color=always
 COLOR_MODE="${GIT_RECAP_COLOR:-auto}"
 AUTHOR_OVERRIDE="${GIT_RECAP_AUTHOR:-}"
 TARGETS=()
-CATEGORIES=(Features Fixes Docs Refactors Tests Performance Chores Other)
+CATEGORIES=(Features Fixes Docs Refactors Tests Performance Chores Reviews Other)
 
 # Global summary state. Kept as scalar variables for macOS Bash 3.x support.
 TOTAL_COMMITS=0
+TOTAL_REVIEWS=0
 PRINTED_REPOS=0
 G_FEATURES_COUNT=0; G_FIXES_COUNT=0; G_DOCS_COUNT=0; G_REFACTORS_COUNT=0
-G_TESTS_COUNT=0; G_PERFORMANCE_COUNT=0; G_CHORES_COUNT=0; G_OTHER_COUNT=0
+G_TESTS_COUNT=0; G_PERFORMANCE_COUNT=0; G_CHORES_COUNT=0; G_REVIEWS_COUNT=0; G_OTHER_COUNT=0
 G_FEATURES_ITEMS=''; G_FIXES_ITEMS=''; G_DOCS_ITEMS=''; G_REFACTORS_ITEMS=''
-G_TESTS_ITEMS=''; G_PERFORMANCE_ITEMS=''; G_CHORES_ITEMS=''; G_OTHER_ITEMS=''
+G_TESTS_ITEMS=''; G_PERFORMANCE_ITEMS=''; G_CHORES_ITEMS=''; G_REVIEWS_ITEMS=''; G_OTHER_ITEMS=''
 
 usage() {
   cat <<EOF_USAGE
@@ -60,6 +62,7 @@ Options:
   -r, --recursive      When scanning a folder, find Git repos at any depth
                        (skips node_modules, vendor, .terraform, dist, build)
       --include-merges Include merge commits (omitted by default)
+      --reviews        Include your GitHub PR reviews via gh (optional network)
       --json           Machine-readable JSON summary (implies no color)
   -V, --version        Print version and exit
   -h, --help           Show this help
@@ -75,6 +78,7 @@ Examples:
   git-recap --flat                   # raw commit list
   git-recap --author "Jane Doe"
   git-recap --all-authors --today    # whole-team window
+  git-recap --reviews --today        # commits + your GitHub PR reviews
   git-recap -r --today               # deep-scan cwd for repos
   git-recap --json --today           # script-friendly output
 EOF_USAGE
@@ -193,6 +197,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --include-merges)
       INCLUDE_MERGES=1
+      shift
+      ;;
+    --reviews)
+      INCLUDE_REVIEWS=1
       shift
       ;;
     --json)
@@ -322,6 +330,7 @@ category_color() {
     Refactors) printf '%s' "$MAGENTA" ;;
     Tests) printf '%s' "$CYAN" ;;
     Performance) printf '%s' "$GREEN" ;;
+    Reviews) printf '%s' "$CYAN" ;;
     Chores|Other) printf '%s' "$DIM" ;;
     *) printf '%s' "$DIM" ;;
   esac
@@ -345,6 +354,8 @@ classify_commit() {
       echo Tests; return ;;
     perf:*|perf!:*|perf\(*\):*|perf\(*\)!:*)
       echo Performance; return ;;
+    review:*|review!:*|reviews:*|reviews!:*|review\(*\):*|reviews\(*\):*|review\(*\)!:*|reviews\(*\)!:*)
+      echo Reviews; return ;;
     chore:*|chore!:*|build:*|build!:*|ci:*|ci!:*|style:*|style!:*|dep:*|deps:*|chore\(*\):*|build\(*\):*|ci\(*\):*|style\(*\):*|deps\(*\):*)
       echo Chores; return ;;
   esac
@@ -364,6 +375,8 @@ classify_commit() {
       echo Tests ;;
     perf\ *|optimis*|*optimiz*|*performance*)
       echo Performance ;;
+    review\ *|reviews\ *|code\ review*|*pull\ request\ review*|*pr\ review*|address*\ review*|address*\ feedback*)
+      echo Reviews ;;
     chore\ *|bump\ *|deps\ *|dependenc*|*upgrade\ *|lint\ *|format\ *)
       echo Chores ;;
     *)
@@ -429,8 +442,18 @@ record_global() {
     Tests) G_TESTS_COUNT=$((G_TESTS_COUNT + 1)); G_TESTS_ITEMS="${G_TESTS_ITEMS}${line}" ;;
     Performance) G_PERFORMANCE_COUNT=$((G_PERFORMANCE_COUNT + 1)); G_PERFORMANCE_ITEMS="${G_PERFORMANCE_ITEMS}${line}" ;;
     Chores) G_CHORES_COUNT=$((G_CHORES_COUNT + 1)); G_CHORES_ITEMS="${G_CHORES_ITEMS}${line}" ;;
+    Reviews) G_REVIEWS_COUNT=$((G_REVIEWS_COUNT + 1)); G_REVIEWS_ITEMS="${G_REVIEWS_ITEMS}${line}" ;;
     *) G_OTHER_COUNT=$((G_OTHER_COUNT + 1)); G_OTHER_ITEMS="${G_OTHER_ITEMS}${line}" ;;
   esac
+}
+
+# GitHub PR reviews (not local commits) — counted separately from TOTAL_COMMITS.
+record_github_review() {
+  local repo="$1" subject="$2" pr_ref="$3" line
+  line="${repo}"$'\t'"${subject}"$'\t'"${pr_ref}"$'\n'
+  TOTAL_REVIEWS=$((TOTAL_REVIEWS + 1))
+  G_REVIEWS_COUNT=$((G_REVIEWS_COUNT + 1))
+  G_REVIEWS_ITEMS="${G_REVIEWS_ITEMS}${line}"
 }
 
 # ---------------------------------------------------------------------------
@@ -471,6 +494,7 @@ add_local_item() {
     Tests) TESTS_COUNT=$((TESTS_COUNT + 1)); TESTS_ITEMS="${TESTS_ITEMS}${item}" ;;
     Performance) PERFORMANCE_COUNT=$((PERFORMANCE_COUNT + 1)); PERFORMANCE_ITEMS="${PERFORMANCE_ITEMS}${item}" ;;
     Chores) CHORES_COUNT=$((CHORES_COUNT + 1)); CHORES_ITEMS="${CHORES_ITEMS}${item}" ;;
+    Reviews) REVIEWS_COUNT=$((REVIEWS_COUNT + 1)); REVIEWS_ITEMS="${REVIEWS_ITEMS}${item}" ;;
     *) OTHER_COUNT=$((OTHER_COUNT + 1)); OTHER_ITEMS="${OTHER_ITEMS}${item}" ;;
   esac
 }
@@ -484,6 +508,7 @@ count_for_category() {
     Tests) echo "$TESTS_COUNT" ;;
     Performance) echo "$PERFORMANCE_COUNT" ;;
     Chores) echo "$CHORES_COUNT" ;;
+    Reviews) echo "$REVIEWS_COUNT" ;;
     *) echo "$OTHER_COUNT" ;;
   esac
 }
@@ -497,6 +522,7 @@ items_for_category() {
     Tests) printf '%s' "$TESTS_ITEMS" ;;
     Performance) printf '%s' "$PERFORMANCE_ITEMS" ;;
     Chores) printf '%s' "$CHORES_ITEMS" ;;
+    Reviews) printf '%s' "$REVIEWS_ITEMS" ;;
     *) printf '%s' "$OTHER_ITEMS" ;;
   esac
 }
@@ -507,9 +533,9 @@ recap_repo() {
   local repo_count=0 noun
 
   FEATURES_COUNT=0; FIXES_COUNT=0; DOCS_COUNT=0; REFACTORS_COUNT=0
-  TESTS_COUNT=0; PERFORMANCE_COUNT=0; CHORES_COUNT=0; OTHER_COUNT=0
+  TESTS_COUNT=0; PERFORMANCE_COUNT=0; CHORES_COUNT=0; REVIEWS_COUNT=0; OTHER_COUNT=0
   FEATURES_ITEMS=''; FIXES_ITEMS=''; DOCS_ITEMS=''; REFACTORS_ITEMS=''
-  TESTS_ITEMS=''; PERFORMANCE_ITEMS=''; CHORES_ITEMS=''; OTHER_ITEMS=''
+  TESTS_ITEMS=''; PERFORMANCE_ITEMS=''; CHORES_ITEMS=''; REVIEWS_ITEMS=''; OTHER_ITEMS=''
 
   if has_git_dir "$dir"; then
     git_dir="$dir"
@@ -637,9 +663,10 @@ json_escape() {
 
 print_json() {
   local cat count first_cat=1 first_item repo subject hash
-  local all_authors_json="false" include_merges_json="false"
+  local all_authors_json="false" include_merges_json="false" include_reviews_json="false"
   [[ "$ALL_AUTHORS" -eq 1 ]] && all_authors_json="true"
   [[ "$INCLUDE_MERGES" -eq 1 ]] && include_merges_json="true"
+  [[ "$INCLUDE_REVIEWS" -eq 1 ]] && include_reviews_json="true"
 
   printf '{\n'
   printf '  "version": "%s",\n' "$(json_escape "$VERSION")"
@@ -648,8 +675,10 @@ print_json() {
   printf '  "since": "%s",\n' "$(json_escape "$SINCE")"
   printf '  "until": "%s",\n' "$(json_escape "$UNTIL")"
   printf '  "include_merges": %s,\n' "$include_merges_json"
+  printf '  "include_reviews": %s,\n' "$include_reviews_json"
   printf '  "timeframe": "%s",\n' "$(json_escape "$(timeframe_label)")"
   printf '  "total_commits": %s,\n' "$TOTAL_COMMITS"
+  printf '  "total_reviews": %s,\n' "$TOTAL_REVIEWS"
   printf '  "repos_with_commits": %s,\n' "$PRINTED_REPOS"
   printf '  "categories": {\n'
 
@@ -696,6 +725,7 @@ global_count_for_category() {
     Tests) echo "$G_TESTS_COUNT" ;;
     Performance) echo "$G_PERFORMANCE_COUNT" ;;
     Chores) echo "$G_CHORES_COUNT" ;;
+    Reviews) echo "$G_REVIEWS_COUNT" ;;
     *) echo "$G_OTHER_COUNT" ;;
   esac
 }
@@ -709,25 +739,53 @@ global_items_for_category() {
     Tests) printf '%s' "$G_TESTS_ITEMS" ;;
     Performance) printf '%s' "$G_PERFORMANCE_ITEMS" ;;
     Chores) printf '%s' "$G_CHORES_ITEMS" ;;
+    Reviews) printf '%s' "$G_REVIEWS_ITEMS" ;;
     *) printf '%s' "$G_OTHER_ITEMS" ;;
   esac
 }
 
+activity_counts_label() {
+  local parts="" noun
+  if [[ "$TOTAL_COMMITS" -gt 0 ]]; then
+    noun="commits"
+    [[ "$TOTAL_COMMITS" -eq 1 ]] && noun="commit"
+    parts="${TOTAL_COMMITS} ${noun}"
+  fi
+  if [[ "$TOTAL_REVIEWS" -gt 0 ]]; then
+    noun="reviews"
+    [[ "$TOTAL_REVIEWS" -eq 1 ]] && noun="review"
+    if [[ -n "$parts" ]]; then
+      parts="${parts} · ${TOTAL_REVIEWS} ${noun}"
+    else
+      parts="${TOTAL_REVIEWS} ${noun}"
+    fi
+  fi
+  if [[ -z "$parts" ]]; then
+    parts="0 commits"
+  fi
+  printf '%s' "$parts"
+}
+
 print_standup_summary() {
-  local cat count color repo subject hash noun
-  [[ "$FLAT" -eq 1 || "$TOTAL_COMMITS" -eq 0 ]] && return
+  local cat count color repo subject hash
+  [[ "$FLAT" -eq 1 ]] && return
+  [[ "$TOTAL_COMMITS" -eq 0 && "$TOTAL_REVIEWS" -eq 0 ]] && return
 
   # Single-repo smart mode already printed the grouped view — avoid duplication
-  # unless the user explicitly asked for --summary-only.
-  if [[ "$SUMMARY_ONLY" -eq 0 && "$PRINTED_REPOS" -le 1 ]]; then
+  # unless the user explicitly asked for --summary-only, or reviews were added
+  # after the per-repo block.
+  if [[ "$SUMMARY_ONLY" -eq 0 && "$PRINTED_REPOS" -le 1 && "$TOTAL_REVIEWS" -eq 0 ]]; then
+    return
+  fi
+  # When only reviews exist (no commit repos printed), still show the block.
+  if [[ "$SUMMARY_ONLY" -eq 0 && "$PRINTED_REPOS" -le 1 && "$TOTAL_COMMITS" -gt 0 && "$TOTAL_REVIEWS" -gt 0 ]]; then
+    # Reviews-only appendix after a single-repo print.
+    print_reviews_section
     return
   fi
 
-  noun="commits"
-  [[ "$TOTAL_COMMITS" -eq 1 ]] && noun="commit"
-
-  printf '\n%sStandup summary%s %s· %s %s · %s%s\n' \
-    "$BOLD" "$RESET" "$DIM" "$TOTAL_COMMITS" "$noun" "$(timeframe_label)" "$RESET"
+  printf '\n%sStandup summary%s %s· %s · %s%s\n' \
+    "$BOLD" "$RESET" "$DIM" "$(activity_counts_label)" "$(timeframe_label)" "$RESET"
   printf '%s%s%s\n' "$DIM" "────────────────────────────────────────" "$RESET"
 
   for cat in "${CATEGORIES[@]}"; do
@@ -738,7 +796,7 @@ print_standup_summary() {
 
     while IFS=$'\t' read -r repo subject hash || [[ -n "${hash:-}" ]]; do
       [[ -z "${hash:-}" ]] && continue
-      if [[ "$PRINTED_REPOS" -gt 1 ]]; then
+      if [[ "$PRINTED_REPOS" -gt 1 || "$cat" == "Reviews" ]]; then
         if [[ "$PLAIN" -eq 1 ]]; then
           printf '    • %s: %s\n' "$repo" "$subject"
         else
@@ -752,6 +810,213 @@ print_standup_summary() {
       repo=''
     done <<< "$(global_items_for_category "$cat")"
   done
+}
+
+print_reviews_section() {
+  local count color repo subject hash
+  count="$TOTAL_REVIEWS"
+  [[ "$count" -eq 0 ]] && return
+
+  color="$(category_color Reviews)"
+  printf '\n%sReviews%s %s· %s · %s%s\n' \
+    "$BOLD" "$RESET" "$DIM" "$(activity_counts_label)" "$(timeframe_label)" "$RESET"
+  printf '%s%s%s\n' "$DIM" "────────────────────────────────────────" "$RESET"
+  printf '  %s%s%s (%s)\n' "$BOLD$color" "Reviews" "$RESET" "$count"
+
+  while IFS=$'\t' read -r repo subject hash || [[ -n "${hash:-}" ]]; do
+    [[ -z "${hash:-}" ]] && continue
+    # Only print GitHub review lines from the shared Reviews bucket by matching PR# refs.
+    case "$hash" in
+      PR#*) ;;
+      *) hash=''; subject=''; repo=''; continue ;;
+    esac
+    if [[ "$PLAIN" -eq 1 ]]; then
+      printf '    • %s: %s\n' "$repo" "$subject"
+    else
+      printf '    • %s%s%s: %s\n' "$DIM" "$repo" "$RESET" "$subject"
+    fi
+    hash=''
+    subject=''
+    repo=''
+  done <<< "$(global_items_for_category Reviews)"
+}
+
+# Convert git approxidates / presets to UTC ISO-8601 for GitHub GraphQL.
+approxidate_to_iso() {
+  local when="$1"
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - "$when" <<'PY'
+import re, sys
+from datetime import datetime, timedelta, timezone
+when = sys.argv[1].strip()
+now = datetime.now(timezone.utc)
+low = when.lower()
+
+def emit(dt):
+    print(dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
+
+if re.match(r"^\d{4}-\d{2}-\d{2}([tT ].*)?$", when):
+    text = when.replace(" ", "T")
+    if text.endswith("Z") or re.search(r"[+-]\d{2}:?\d{2}$", text):
+        dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    else:
+        if "T" not in text:
+            text += "T00:00:00"
+        dt = datetime.fromisoformat(text).replace(tzinfo=timezone.utc)
+    emit(dt)
+    raise SystemExit(0)
+
+m = re.match(r"^(\d+)\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\s+ago$", low)
+if m:
+    n = int(m.group(1))
+    unit = m.group(2).rstrip("s")
+    seconds = {
+        "second": 1, "minute": 60, "hour": 3600, "day": 86400,
+        "week": 604800, "month": 2592000, "year": 31536000,
+    }[unit]
+    emit(now - timedelta(seconds=n * seconds))
+    raise SystemExit(0)
+
+if low in ("midnight", "today", "today 00:00"):
+    emit(now.replace(hour=0, minute=0, second=0, microsecond=0))
+    raise SystemExit(0)
+if low in ("yesterday", "yesterday 00:00"):
+    emit((now - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0))
+    raise SystemExit(0)
+
+print("")
+raise SystemExit(1)
+PY
+    return
+  fi
+  return 1
+}
+
+review_verb_for_state() {
+  case "$1" in
+    APPROVED) echo "Approved" ;;
+    CHANGES_REQUESTED) echo "Requested changes on" ;;
+    COMMENTED) echo "Reviewed" ;;
+    DISMISSED) echo "Dismissed review on" ;;
+    *) echo "Reviewed" ;;
+  esac
+}
+
+# Fetch GitHub PR reviews for the authenticated gh user into the Reviews bucket.
+fetch_github_reviews() {
+  local from_iso to_iso from_day login payload
+
+  if ! command -v gh >/dev/null 2>&1; then
+    echo "warning: --reviews requires the GitHub CLI (gh); skipping reviews" >&2
+    return 1
+  fi
+  if ! gh auth status >/dev/null 2>&1; then
+    echo "warning: --reviews requires an authenticated gh session (gh auth login); skipping reviews" >&2
+    return 1
+  fi
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "warning: --reviews requires python3 to parse review dates; skipping reviews" >&2
+    return 1
+  fi
+
+  from_iso="$(approxidate_to_iso "$SINCE" 2>/dev/null || true)"
+  if [[ -z "$from_iso" ]]; then
+    echo "warning: --reviews could not parse --since '${SINCE}'; skipping reviews" >&2
+    return 1
+  fi
+  if [[ -n "$UNTIL" ]]; then
+    to_iso="$(approxidate_to_iso "$UNTIL" 2>/dev/null || true)"
+    if [[ -z "$to_iso" ]]; then
+      echo "warning: --reviews could not parse --until '${UNTIL}'; skipping reviews" >&2
+      return 1
+    fi
+  else
+    to_iso="$(python3 -c 'from datetime import datetime,timezone; print(datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))')"
+  fi
+
+  if [[ "$ALL_AUTHORS" -eq 1 || -n "$AUTHOR_OVERRIDE" ]]; then
+    echo "warning: --reviews always uses the authenticated gh user (author filters apply to commits only)" >&2
+  fi
+
+  login="$(gh api user --jq .login 2>/dev/null || true)"
+  if [[ -z "$login" ]]; then
+    echo "warning: --reviews could not resolve the gh user; skipping reviews" >&2
+    return 1
+  fi
+
+  from_day="$(printf '%s' "$from_iso" | cut -c1-10)"
+  payload="$(
+    gh api graphql -f query="
+      query {
+        search(query: \"type:pr reviewed-by:${login} updated:>=${from_day}\", type: ISSUE, first: 50) {
+          nodes {
+            ... on PullRequest {
+              number
+              title
+              repository { name nameWithOwner }
+              reviews(first: 40) {
+                nodes { author { login } state submittedAt }
+              }
+            }
+          }
+        }
+      }" 2>/dev/null || true
+  )"
+
+  if [[ -z "$payload" ]]; then
+    echo "warning: --reviews failed to query GitHub; skipping reviews" >&2
+    return 1
+  fi
+
+  # Filter by review submittedAt (search only constrains PR updatedAt).
+  while IFS=$'\t' read -r nwo repo number title state || [[ -n "${nwo:-}" ]]; do
+    [[ -z "${nwo:-}" ]] && continue
+    verb="$(review_verb_for_state "$state")"
+    subject="$(shorten_subject "${verb} #${number}: ${title}")"
+    [[ -z "$repo" ]] && repo="$nwo"
+    record_github_review "$repo" "$subject" "PR#${number}"
+    nwo=''
+    repo=''
+    number=''
+    title=''
+    state=''
+  done < <(
+    FROM_ISO="$from_iso" TO_ISO="$to_iso" LOGIN="$login" python3 -c '
+import json, os, sys
+from datetime import datetime
+
+def parse(ts):
+    return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+
+payload = json.load(sys.stdin)
+login = os.environ["LOGIN"]
+start = parse(os.environ["FROM_ISO"])
+end = parse(os.environ["TO_ISO"])
+nodes = (((payload.get("data") or {}).get("search") or {}).get("nodes")) or []
+for pr in nodes:
+    if not pr:
+        continue
+    repo = (pr.get("repository") or {})
+    nwo = repo.get("nameWithOwner") or ""
+    name = repo.get("name") or nwo
+    number = pr.get("number")
+    title = (pr.get("title") or "").replace("\t", " ").replace("\n", " ")
+    for review in ((pr.get("reviews") or {}).get("nodes") or []):
+        author = (review.get("author") or {}).get("login")
+        if author != login:
+            continue
+        submitted = review.get("submittedAt")
+        if not submitted:
+            continue
+        ts = parse(submitted)
+        if ts < start or ts > end:
+            continue
+        state = review.get("state") or "COMMENTED"
+        print(f"{nwo}\t{name}\t{number}\t{title}\t{state}")
+' <<< "$payload"
+  )
+
+  return 0
 }
 
 # ---------------------------------------------------------------------------
@@ -823,30 +1088,48 @@ else
 fi
 
 if [[ ${#REPOS[@]} -eq 0 ]]; then
-  if [[ "$JSON" -eq 1 ]]; then
+  if [[ "$INCLUDE_REVIEWS" -eq 1 ]]; then
+    : # allow review-only recap when no local repos were found
+  elif [[ "$JSON" -eq 1 ]]; then
     TOTAL_COMMITS=0
     PRINTED_REPOS=0
     print_json
+    exit 0
   else
     echo "No Git repositories found to recap." >&2
+    exit 0
   fi
-  exit 0
 fi
 
 # ---------------------------------------------------------------------------
 # Run
 # ---------------------------------------------------------------------------
 printed=0
-for repo in "${REPOS[@]}"; do
+for repo in "${REPOS[@]+"${REPOS[@]}"}"; do
   if recap_repo "$repo" "$REQUIRE_GIT_DIR"; then
     printed=1
   fi
 done
 
+if [[ "$INCLUDE_REVIEWS" -eq 1 ]]; then
+  fetch_github_reviews || true
+  if [[ "$TOTAL_REVIEWS" -gt 0 ]]; then
+    printed=1
+  fi
+fi
+
 if [[ "$JSON" -eq 1 ]]; then
   print_json
 elif [[ "$printed" -eq 0 ]]; then
-  printf '%sNo commits by %s%s%s %s%s.\n' "$DIM" "$BOLD" "$DISPLAY_AUTHOR" "$RESET$DIM" "$(timeframe_label)" "$RESET"
+  if [[ ${#REPOS[@]} -eq 0 && "$INCLUDE_REVIEWS" -eq 1 ]]; then
+    echo "No Git repositories found, and no PR reviews in this timeframe." >&2
+  else
+    printf '%sNo commits by %s%s%s %s%s.\n' "$DIM" "$BOLD" "$DISPLAY_AUTHOR" "$RESET$DIM" "$(timeframe_label)" "$RESET"
+  fi
+elif [[ "$FLAT" -eq 1 ]]; then
+  if [[ "$TOTAL_REVIEWS" -gt 0 ]]; then
+    print_reviews_section
+  fi
 else
   print_standup_summary
 fi

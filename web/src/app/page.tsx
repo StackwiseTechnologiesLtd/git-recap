@@ -334,7 +334,7 @@ export default function Home() {
             <Reveal className="mx-auto mt-6 w-full max-w-3xl min-w-0" delay={2}>
               <CopyCommand command={BREW_INSTALL} />
               <p className="mt-5 text-center text-sm text-muted">
-                Prefer source? See{" "}
+                Prefer source ? See{" "}
                 <Link href="/docs#install" className="text-accent hover:underline">
                   docs
                 </Link>

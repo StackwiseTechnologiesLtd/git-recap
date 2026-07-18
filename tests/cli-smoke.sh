@@ -98,6 +98,7 @@ assert_match "$help_out" "--author" "--help documents --author"
 assert_match "$help_out" "--all-authors" "--help documents --all-authors"
 assert_match "$help_out" "--until" "--help documents --until"
 assert_match "$help_out" "--include-merges" "--help documents --include-merges"
+assert_match "$help_out" "--reviews" "--help documents --reviews"
 assert_match "$help_out" "--color" "--help documents --color"
 assert_match "$help_out" "--recursive" "--help documents --recursive"
 assert_match "$help_out" "--json" "--help documents --json"
@@ -249,6 +250,21 @@ no_merge_out="$("$SCRIPT" --today --author "Smoke Tester" --flat --plain)"
 assert_no_match "$no_merge_out" "Merge branch" "merge commits omitted by default"
 merge_out="$("$SCRIPT" --today --author "Smoke Tester" --include-merges --flat --plain)"
 assert_match "$merge_out" "Merge branch" "--include-merges shows merge commits"
+
+# Offline Reviews category for review-style commits
+(
+  cd "$REPO_A"
+  printf 'review-note\n' >> README.md
+  git add README.md
+  git commit -q -m "review: tighten auth edge cases"
+)
+review_commit_out="$("$SCRIPT" --today --author "Smoke Tester" --plain)"
+assert_match "$review_commit_out" "Reviews" "review: commits classify under Reviews"
+
+# --reviews without gh auth in PATH still exits cleanly (warns or fetches)
+reviews_out="$("$SCRIPT" --today --reviews --json --author "Smoke Tester" 2>"$TMPDIR_ROOT/reviews.err")"
+assert_match "$reviews_out" '"include_reviews": true' "--json reports include_reviews"
+assert_match "$reviews_out" '"total_reviews"' "--json includes total_reviews"
 
 # ---------------------------------------------------------------------------
 # Summary
