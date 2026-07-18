@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef } from "react";
-import { PixelLogo, PixelWordmark } from "@/components/PixelBrand";
+import { PixelLogo } from "@/components/PixelBrand";
 import { useScrollProgress } from "@/hooks/useScrollProgress";
 
 type HelpRow = { cmd: string; note: string };
@@ -73,18 +73,11 @@ export function InstallHelpTerminal({
           }}
           className="will-change-transform"
         >
-          <div className="flex min-w-0 items-center justify-center gap-3 sm:gap-5">
-            <PixelLogo size={56} className="shrink-0 sm:scale-110" />
-            <div className="min-w-0 text-left">
-              <PixelWordmark
-                text="git-recap"
-                scale={3.5}
-                className="max-w-full"
-              />
-              <p className="mt-2.5 font-mono text-xs text-term-muted sm:text-sm">
-                &quot;{tagline}&quot;
-              </p>
-            </div>
+          <div className="flex min-w-0 flex-col items-center justify-center gap-3 sm:gap-5">
+            <PixelLogo className="shrink-0 max-w-full" />
+            <p className="font-mono text-xs text-term-muted sm:text-sm">
+              &quot;{tagline}&quot;
+            </p>
           </div>
         </div>
 
