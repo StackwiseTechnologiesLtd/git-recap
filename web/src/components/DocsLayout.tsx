@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 import { CommandPalette } from "@/components/CommandPalette";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 function BookIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
@@ -56,6 +57,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const pathname = usePathname();
+  const normalizedPathname = pathname.endsWith('/') && pathname !== '/' ? pathname.slice(0, -1) : pathname;
   const progressBarRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -96,7 +98,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
         {!isCollapsed && <div className="px-2 py-1.5 text-[11px] font-semibold text-muted uppercase tracking-wider mt-4 whitespace-nowrap">{sectionName}</div>}
         {items.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = normalizedPathname === item.href;
           return (
             <Link
               key={item.href}
@@ -185,6 +187,10 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
           {renderNavSection("Configuration")}
           {renderNavSection("Reference")}
         </nav>
+
+        <div className={`p-4 border-t border-line/50 flex ${isCollapsed ? 'justify-center' : 'justify-start'}`}>
+          <ThemeToggle />
+        </div>
       </aside>
 
       {/* Main Content Area */}
@@ -200,6 +206,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
             <span className="font-semibold tracking-tight text-fg transition-colors group-hover:text-accent">git-recap</span>
           </Link>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <button 
               onClick={() => setIsCommandPaletteOpen(true)} 
               className="text-muted hover:text-fg transition-colors"
@@ -212,25 +219,23 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Mobile Sub-Navbar */}
-        <button
-          onClick={() => setIsMobileOpen(true)}
-          className="md:hidden flex items-center justify-between px-5 pb-4 shrink-0 w-full hover:opacity-80 transition-opacity"
-        >
+        {/* Mobile Sub-Navbar / Progress Indicator */}
+        <div className="md:hidden flex items-center justify-between px-5 pb-4 shrink-0 w-full">
           <div className="flex items-center gap-2.5 text-muted">
             <ProgressCircle 
               progress={
-                Math.max(
-                  ((navItems.findIndex(item => item.href === pathname) + 1) / navItems.length) * 100,
-                  0
-                )
+                (() => {
+                  const idx = navItems.findIndex(item => item.href === normalizedPathname);
+                  // Default to first page if not found (1 / length)
+                  return (((idx === -1 ? 0 : idx) + 1) / navItems.length) * 100;
+                })()
               } 
             />
             <span className="text-sm font-medium">
-              {navItems.find(item => item.href === pathname)?.title || "Getting Started"}
+              {navItems.find(item => item.href === normalizedPathname)?.title || "Getting Started"}
             </span>
           </div>
-        </button>
+        </div>
 
         {/* Content wrapper with rounded top on mobile */}
         <div 
