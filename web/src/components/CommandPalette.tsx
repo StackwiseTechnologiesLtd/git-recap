@@ -3,53 +3,53 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// Hardcoded search index
+// Hardcoded search index with deep keywords
 const searchIndex = [
   {
     section: "Getting Started",
     items: [
-      { title: "Introduction", desc: "Why git-recap and what it does", url: "/docs" },
-      { title: "Installation", desc: "Install via Homebrew or source", url: "/docs#installation" },
-      { title: "Quick Start", desc: "Run your first recap", url: "/docs#quick-start" },
+      { title: "Introduction", desc: "Why git-recap and what it does", url: "/docs", keywords: "automate standup prep tracking velocity intelligently grouping categorize clean summary perfectly formatted" },
+      { title: "Installation", desc: "Install via Homebrew or source", url: "/docs#installation", keywords: "brew tap install trust macos linux cargo rust github readme" },
+      { title: "Quick Start", desc: "Run your first recap", url: "/docs#quick-start", keywords: "midnight navigate parent directory immediate sub-directories subdirectories" },
     ],
   },
   {
     section: "Built-in Modules",
     items: [
-      { title: "The Grouping Algorithm", desc: "How conventional commits are handled", url: "/docs/modules#the-grouping-algorithm" },
-      { title: "Categories Overview", desc: "Features, Fixes, Docs, Refactors, Tests, Performance, Chores", url: "/docs/modules#categories-overview" },
-      { title: "The Other Bucket", desc: "Uncategorized commits", url: "/docs/modules#the-other-bucket" },
+      { title: "The Grouping Algorithm", desc: "How conventional commits are handled", url: "/docs/modules#the-grouping-algorithm", keywords: "stripping conventional commit prefixes keyword-matching system add resolve update bucket" },
+      { title: "Categories Overview", desc: "Features, Fixes, Docs, Refactors, Tests, Performance, Chores", url: "/docs/modules#categories-overview", keywords: "new functionality codebase bug error patch memory leak documentation readme docstrings structure lazy load database query bump react github actions" },
+      { title: "The Other Bucket", desc: "Uncategorized commits", url: "/docs/modules#the-other-bucket", keywords: "defies categorization confidently place lost hidden" },
     ],
   },
   {
     section: "Timeframe Handling",
     items: [
-      { title: "Deep Dive into Git Dates", desc: "How --since and --until flags work", url: "/docs/timeframe" },
-      { title: "Common Scenarios", desc: "The Daily Standup and The Weekly Sync", url: "/docs/timeframe#common-scenarios" },
-      { title: "Environment Variables", desc: "Setting GIT_RECAP_SINCE", url: "/docs/timeframe#environment-variables" },
+      { title: "Deep Dive into Git Dates", desc: "How --since and --until flags work", url: "/docs/timeframe", keywords: "internal date parsing engine natural language absolute dates relative timestamp yesterday 10:00am 2 weeks ago" },
+      { title: "Common Scenarios", desc: "The Daily Standup and The Weekly Sync", url: "/docs/timeframe#common-scenarios", keywords: "morning early-morning sprint planning 1-on-1s boundaries wednesday" },
+      { title: "Environment Variables", desc: "Setting GIT_RECAP_SINCE", url: "/docs/timeframe#environment-variables", keywords: "bashrc zshrc default recap window 48 hours export env var" },
     ],
   },
   {
     section: "Routing & Monorepos",
     items: [
-      { title: "Directory Scanning", desc: "How it automatically finds repositories", url: "/docs/routing" },
-      { title: "Deep Scanning (-r)", desc: "Recursive scanning for nested repos", url: "/docs/routing#deep-scanning--r" },
-      { title: "Targeted Runs", desc: "Passing explicit directory paths", url: "/docs/routing#targeted-runs" },
+      { title: "Directory Scanning", desc: "How it automatically finds repositories", url: "/docs/routing", keywords: "current working directory zero-commit duplicate summary block noise-free identical" },
+      { title: "Deep Scanning (-r)", desc: "Recursive scanning for nested repos", url: "/docs/routing#deep-scanning--r", keywords: "complex folder structure common dependency build node_modules vendor .next" },
+      { title: "Targeted Runs", desc: "Passing explicit directory paths", url: "/docs/routing#targeted-runs", keywords: "bypass strict evaluate specific set projects" },
     ],
   },
   {
     section: "Options & API",
     items: [
-      { title: "Time & Author Filtering", desc: "--since, --until, --today, --yesterday, --author", url: "/docs/options" },
-      { title: "Output Formatting", desc: "--plain, --color, --summary-only, --flat, --json", url: "/docs/options" },
-      { title: "Integration Use-Cases", desc: "JSON automation and GitHub PR Reviews", url: "/docs/options#integration-use-cases" },
+      { title: "Time & Author Filtering", desc: "--since, --until, --today, --yesterday, --author", url: "/docs/options", keywords: "midnight 00:00 week default git user.email user.name include-merges all-authors" },
+      { title: "Output Formatting", desc: "--plain, --color, --summary-only, --flat, --json", url: "/docs/options", keywords: "paste-friendly auto always never human-readable ansi machine-readable max-length bullet length" },
+      { title: "Integration Use-Cases", desc: "JSON automation and GitHub PR Reviews", url: "/docs/options#integration-use-cases", keywords: "custom slack bot notion script pipe bypass code review authenticated gh cli fetch official" },
     ],
   },
   {
     section: "Requirements",
     items: [
-      { title: "System Prerequisites", desc: "Bash and Git dependencies", url: "/docs/requirements" },
-      { title: "Troubleshooting Author Matching", desc: "Fixing empty output and git config user.email", url: "/docs/requirements#troubleshooting-author-matching" },
+      { title: "System Prerequisites", desc: "Bash and Git dependencies", url: "/docs/requirements", keywords: "lightweight dependency-free standard unix-like shell wsl log internal parsing" },
+      { title: "Troubleshooting Author Matching", desc: "Fixing empty output and git config user.email", url: "/docs/requirements#troubleshooting-author-matching", keywords: "missing commits override check multiple emails global settings verify" },
     ],
   },
 ];
@@ -72,7 +72,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       items: section.items.filter(
         (item) =>
           item.title.toLowerCase().includes(query.toLowerCase()) ||
-          item.desc.toLowerCase().includes(query.toLowerCase())
+          item.desc.toLowerCase().includes(query.toLowerCase()) ||
+          (item.keywords && item.keywords.toLowerCase().includes(query.toLowerCase()))
       ),
     }))
     .filter((section) => section.items.length > 0);
