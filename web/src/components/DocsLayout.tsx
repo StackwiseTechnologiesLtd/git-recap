@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
+import { CommandPalette } from "@/components/CommandPalette";
 
 function BookIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
@@ -30,9 +31,19 @@ function ChevronDownIcon(props: React.SVGProps<SVGSVGElement>) {
 export function DocsLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const navItems = [
     { href: "/docs", title: "Getting Started", icon: BookIcon, section: "Introduction" },
@@ -43,13 +54,8 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
     { href: "/docs/requirements", title: "Requirements", icon: SettingsIcon, section: "Reference" },
   ];
 
-  const filteredNav = navItems.filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.section.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const renderNavSection = (sectionName: string) => {
-    const items = filteredNav.filter(item => item.section === sectionName);
+    const items = navItems.filter(item => item.section === sectionName);
     if (items.length === 0) return null;
 
     return (
@@ -80,7 +86,12 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex flex-1 overflow-hidden h-full">
+    <>
+      <CommandPalette 
+        isOpen={isCommandPaletteOpen} 
+        onClose={() => setIsCommandPaletteOpen(false)} 
+      />
+      <div className="flex flex-1 overflow-hidden h-full">
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <div
@@ -123,17 +134,16 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 
         {!isCollapsed && (
           <div className="px-4 py-4">
-            <div className="relative">
-              <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-bg border border-line rounded-lg py-1.5 pl-9 pr-3 text-sm text-fg outline-none focus:border-accent transition-colors"
-              />
-            </div>
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="relative w-full flex items-center bg-bg hover:bg-bg-elevated border border-line rounded-lg py-1.5 pl-3 pr-2 text-sm text-muted outline-none transition-colors group"
+            >
+              <SearchIcon className="h-4 w-4 mr-2" />
+              <span>Search...</span>
+              <span className="ml-auto hidden sm:flex items-center rounded bg-bg-panel border border-line px-1.5 py-0.5 text-[10px] font-medium text-muted group-hover:text-fg transition-colors">
+                <span className="text-[12px] leading-none font-sans mr-0.5">⌘</span>K
+              </span>
+            </button>
           </div>
         )}
 
@@ -141,10 +151,6 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
           {renderNavSection("Introduction")}
           {renderNavSection("Configuration")}
           {renderNavSection("Reference")}
-
-          {filteredNav.length === 0 && !isCollapsed && (
-            <div className="px-2 py-4 text-sm text-muted text-center">No results found.</div>
-          )}
         </nav>
       </aside>
 
@@ -162,10 +168,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
           </Link>
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => {
-                setIsMobileOpen(true);
-                setTimeout(() => searchInputRef.current?.focus(), 100);
-              }} 
+              onClick={() => setIsCommandPaletteOpen(true)} 
               className="text-muted hover:text-fg transition-colors"
             >
               <SearchIcon className="w-5 h-5" />
@@ -197,5 +200,6 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
         </div>
       </main>
     </div>
+    </>
   );
 }
