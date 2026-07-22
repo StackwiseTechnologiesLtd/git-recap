@@ -1,9 +1,9 @@
 import { CopyCommand } from "@/components/CopyCommand";
+import { SiteHeader } from "@/components/SiteHeader";
+import { DocsSidebar } from "@/components/DocsSidebar";
 import { JsonLd, breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
-import Image from "next/image";
 import { ScrollReveal } from "@/components/ScrollReveal";
-import Link from "next/link";
 
 export const metadata: Metadata = buildMetadata({
   title: "Docs",
@@ -19,7 +19,6 @@ export const metadata: Metadata = buildMetadata({
     "git-recap --reviews",
   ],
 });
-
 
 const BREW_INSTALL =
   "brew tap StackwiseTechnologiesLtd/tools && brew trust StackwiseTechnologiesLtd/tools && brew install git-recap";
@@ -132,13 +131,10 @@ function GridIcon(props: React.SVGProps<SVGSVGElement>) {
 function CommandIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m10 9-3 3 3 3"/><path d="M14 15h4"/></svg>
 }
-function SearchIcon(props: React.SVGProps<SVGSVGElement>) {
-  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-}
 
 export default function DocsPage() {
   return (
-    <div className="flex h-[100dvh] w-full bg-bg text-fg overflow-hidden selection:bg-accent selection:text-fg">
+    <div className="flex flex-col h-[100dvh] w-full bg-bg text-fg overflow-hidden selection:bg-accent selection:text-fg">
       <JsonLd
         data={breadcrumbJsonLd([
           { name: "Home", path: "/" },
@@ -146,236 +142,189 @@ export default function DocsPage() {
         ])}
       />
       
-      {/* Sidebar Layout */}
-      <aside className="w-[260px] flex-shrink-0 border-r border-line bg-bg-panel/30 hidden md:flex flex-col h-full overflow-y-auto">
-        <Link href="/" className="p-5 flex items-center gap-3 group">
-          <Image src="/logo.svg" alt="git-recap" width={24} height={24} className="group-hover:scale-105 transition-transform" />
-          <span className="font-semibold tracking-tight text-lg group-hover:text-accent transition-colors">git-recap</span>
-        </Link>
-        
-        <div className="px-4 pb-4">
-          <div className="relative">
-            <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted" />
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              className="w-full bg-bg border border-line rounded-lg py-1.5 pl-9 pr-3 text-sm text-fg outline-none focus:border-accent transition-colors"
-            />
-          </div>
-        </div>
+      <SiteHeader />
 
-        <nav className="flex-1 px-3 pb-6 flex flex-col gap-1">
-          <div className="px-2 py-1.5 text-[11px] font-semibold text-muted uppercase tracking-wider mt-2">
-            Introduction
-          </div>
-          <a href="#install" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors">
-            <BookIcon className="h-4 w-4" />
-            Getting Started
-          </a>
-          <a href="#usage" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors">
-            <CommandIcon className="h-4 w-4" />
-            Built-in Modules
-          </a>
+      <div className="flex flex-1 pt-24 overflow-hidden h-full">
+        <DocsSidebar />
 
-          <div className="px-2 py-1.5 text-[11px] font-semibold text-muted uppercase tracking-wider mt-4">
-            Configuration
-          </div>
-          <a href="#timeframe" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors">
-            Timeframe
-          </a>
-          <a href="#routing" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors">
-            Routing
-          </a>
-          <a href="#options" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors">
-            Options
-          </a>
+        {/* Main Content Area */}
+        <main className="flex-1 h-full overflow-y-auto relative scroll-smooth">
+          <div className="max-w-4xl mx-auto px-6 py-6 md:px-12 md:py-8">
+            <ScrollReveal>
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+                Documentation
+              </h1>
+              <p className="mt-4 text-lg text-muted">
+                Everything you need to use git-recap and build clean standup summaries.
+              </p>
+            </ScrollReveal>
 
-          <div className="px-2 py-1.5 text-[11px] font-semibold text-muted uppercase tracking-wider mt-4">
-            Reference
-          </div>
-          <a href="#requirements" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors">
-            Requirements
-          </a>
-        </nav>
-      </aside>
+            {/* Cards Grid */}
+            <ScrollReveal delay={100}>
+              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="#install" className="md:col-span-3 panel-hover p-6 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
+                  <BookIcon className="h-6 w-6 text-muted group-hover:text-fg transition-colors" />
+                  <h3 className="text-lg font-medium text-fg">Getting Started</h3>
+                  <p className="text-sm text-muted">Download, install, and set up git-recap on your machine in two minutes.</p>
+                </a>
+                
+                <a href="#usage" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
+                  <GridIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
+                  <h3 className="text-md font-medium text-fg">Built-in Modules</h3>
+                  <p className="text-sm text-muted">See how commits are categorized automatically.</p>
+                </a>
 
-      {/* Main Content Area */}
-      <main className="flex-1 h-full overflow-y-auto relative scroll-smooth">
-        <div className="max-w-4xl mx-auto px-6 py-12 md:px-12 md:py-16">
-          <ScrollReveal>
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-              Documentation
-            </h1>
-            <p className="mt-4 text-lg text-muted">
-              Everything you need to use git-recap and build clean standup summaries.
-            </p>
-          </ScrollReveal>
+                <a href="#options" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
+                  <CodeIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
+                  <h3 className="text-md font-medium text-fg">Configuration</h3>
+                  <p className="text-sm text-muted">Learn to pass options, flags, and arguments.</p>
+                </a>
 
-          {/* Cards Grid */}
-          <ScrollReveal delay={100}>
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <a href="#install" className="md:col-span-3 panel-hover p-6 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
-                <BookIcon className="h-6 w-6 text-muted group-hover:text-fg transition-colors" />
-                <h3 className="text-lg font-medium text-fg">Getting Started</h3>
-                <p className="text-sm text-muted">Download, install, and set up git-recap on your machine in two minutes.</p>
-              </a>
-              
-              <a href="#usage" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
-                <GridIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
-                <h3 className="text-md font-medium text-fg">Built-in Modules</h3>
-                <p className="text-sm text-muted">See how commits are categorized automatically.</p>
-              </a>
+                <a href="#requirements" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
+                  <CommandIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
+                  <h3 className="text-md font-medium text-fg">API Reference</h3>
+                  <p className="text-sm text-muted">Every available flag typed out and documented.</p>
+                </a>
+              </div>
+            </ScrollReveal>
 
-              <a href="#options" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
-                <CodeIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
-                <h3 className="text-md font-medium text-fg">Configuration</h3>
-                <p className="text-sm text-muted">Learn to pass options, flags, and arguments.</p>
-              </a>
-
-              <a href="#requirements" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
-                <CommandIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
-                <h3 className="text-md font-medium text-fg">API Reference</h3>
-                <p className="text-sm text-muted">Every available flag typed out and documented.</p>
-              </a>
-            </div>
-          </ScrollReveal>
-
-          {/* Documentation Sections */}
-          <div className="mt-20 space-y-24">
-            <section id="install" className="scroll-mt-12">
-              <ScrollReveal>
-                <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
-                <p className="mt-3 text-muted">Homebrew (recommended):</p>
-                <div className="mt-5 panel-hover">
-                  <CopyCommand command={BREW_INSTALL} />
-                </div>
-                <p className="mt-8 text-sm text-muted">
-                  Modern Homebrew requires{" "}
-                  <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded border border-line/50">brew trust</code> for
-                  third-party taps. Or install from source — see the{" "}
-                  <a
-                    href="https://github.com/StackwiseTechnologiesLtd/git-recap#from-source"
-                    className="text-accent hover:underline font-medium"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    GitHub README
-                  </a>
-                  .
-                </p>
-              </ScrollReveal>
-            </section>
-
-            <section id="usage" className="scroll-mt-12">
-              <ScrollReveal>
-                <h2 className="text-2xl font-semibold tracking-tight">Usage</h2>
-                <p className="mt-3 text-muted">
-                  Groups commits into Features, Fixes, Docs, Refactors, Tests,
-                  Performance, Chores, and Other. Conventional prefixes like{" "}
-                  <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded border border-line/50">feat:</code> are
-                  stripped; long subjects shorten at word boundaries.
-                </p>
-                <div className="mt-8 overflow-hidden rounded-2xl border border-term-border bg-term-bg shadow-sm">
-                  {commands.map((item, i) => (
-                    <div
-                      key={item.cmd}
-                      className={`flex flex-col gap-1 px-4 py-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 hover:bg-term-elevated/80 transition-colors ${i < commands.length - 1 ? "border-b border-term-border/50" : ""
-                        }`}
+            {/* Documentation Sections */}
+            <div className="mt-20 space-y-24 pb-20">
+              <section id="install" className="scroll-mt-32">
+                <ScrollReveal>
+                  <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
+                  <p className="mt-3 text-muted">Homebrew (recommended):</p>
+                  <div className="mt-5 panel-hover">
+                    <CopyCommand command={BREW_INSTALL} />
+                  </div>
+                  <p className="mt-8 text-sm text-muted">
+                    Modern Homebrew requires{" "}
+                    <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded border border-line/50">brew trust</code> for
+                    third-party taps. Or install from source — see the{" "}
+                    <a
+                      href="https://github.com/StackwiseTechnologiesLtd/git-recap#from-source"
+                      className="text-accent hover:underline font-medium"
+                      target="_blank"
+                      rel="noreferrer"
                     >
-                      <code className="font-mono text-[13px] text-term-fg sm:text-sm">
-                        <span className="text-term-prompt select-none">$ </span>
-                        {item.cmd}
-                      </code>
-                      <span className="shrink-0 text-sm text-term-muted transition-colors">{item.note}</span>
-                    </div>
-                  ))}
-                </div>
-              </ScrollReveal>
-            </section>
+                      GitHub README
+                    </a>
+                    .
+                  </p>
+                </ScrollReveal>
+              </section>
 
-            <section id="timeframe" className="scroll-mt-12">
-              <ScrollReveal>
-                <h2 className="text-2xl font-semibold tracking-tight">Timeframe</h2>
-                <p className="mt-3 text-muted">
-                  Values pass through to{" "}
-                  <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded border border-line/50">git log --since</code>
-                  , so any Git date expression works.{" "}
-                  <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded border border-line/50">--yesterday</code> uses{" "}
-                  <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded border border-line/50">
-                    --since &quot;yesterday 00:00&quot; --until &quot;today 00:00&quot;
-                  </code>
-                  .
-                </p>
-                <DocTable
-                  headers={["Method", "Example"]}
-                  rows={timeframes.map((r) => [r.method, r.example])}
-                />
-              </ScrollReveal>
-            </section>
+              <section id="usage" className="scroll-mt-32">
+                <ScrollReveal>
+                  <h2 className="text-2xl font-semibold tracking-tight">Usage</h2>
+                  <p className="mt-3 text-muted">
+                    Groups commits into Features, Fixes, Docs, Refactors, Tests,
+                    Performance, Chores, and Other. Conventional prefixes like{" "}
+                    <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded border border-line/50">feat:</code> are
+                    stripped; long subjects shorten at word boundaries.
+                  </p>
+                  <div className="mt-8 overflow-hidden rounded-2xl border border-term-border bg-term-bg shadow-sm">
+                    {commands.map((item, i) => (
+                      <div
+                        key={item.cmd}
+                        className={`flex flex-col gap-1 px-4 py-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 hover:bg-term-elevated/80 transition-colors ${i < commands.length - 1 ? "border-b border-term-border/50" : ""
+                          }`}
+                      >
+                        <code className="font-mono text-[13px] text-term-fg sm:text-sm">
+                          <span className="text-term-prompt select-none">$ </span>
+                          {item.cmd}
+                        </code>
+                        <span className="shrink-0 text-sm text-term-muted transition-colors">{item.note}</span>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollReveal>
+              </section>
 
-            <section id="routing" className="scroll-mt-12">
-              <ScrollReveal>
-                <h2 className="text-2xl font-semibold tracking-tight">Routing</h2>
-                <p className="mt-3 text-muted">
-                  Repositories with no commits by you in the timeframe are omitted.
-                  Single-repo runs skip the duplicate standup summary block.
-                </p>
-                <DocTable
-                  headers={["Situation", "Behavior"]}
-                  rows={routing.map((r) => [r.situation, r.behavior])}
-                />
-              </ScrollReveal>
-            </section>
+              <section id="timeframe" className="scroll-mt-32">
+                <ScrollReveal>
+                  <h2 className="text-2xl font-semibold tracking-tight">Timeframe</h2>
+                  <p className="mt-3 text-muted">
+                    Values pass through to{" "}
+                    <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded border border-line/50">git log --since</code>
+                    , so any Git date expression works.{" "}
+                    <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded border border-line/50">--yesterday</code> uses{" "}
+                    <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded border border-line/50">
+                      --since &quot;yesterday 00:00&quot; --until &quot;today 00:00&quot;
+                    </code>
+                    .
+                  </p>
+                  <DocTable
+                    headers={["Method", "Example"]}
+                    rows={timeframes.map((r) => [r.method, r.example])}
+                  />
+                </ScrollReveal>
+              </section>
 
-            <section id="options" className="scroll-mt-12">
-              <ScrollReveal>
-                <h2 className="text-2xl font-semibold tracking-tight">Options</h2>
-                <ul className="mt-8 space-y-4">
-                  {options.map((opt) => (
-                    <li key={opt.flag} className="panel-hover p-4 rounded-2xl border border-transparent hover:border-line hover:bg-bg-elevated/40 transition-all">
-                      <code className="font-mono text-sm text-fg bg-bg-elevated border border-line/50 px-2 py-1 rounded-md">{opt.flag}</code>
-                      <p className="mt-2 text-sm leading-relaxed text-muted">{opt.desc}</p>
+              <section id="routing" className="scroll-mt-32">
+                <ScrollReveal>
+                  <h2 className="text-2xl font-semibold tracking-tight">Routing</h2>
+                  <p className="mt-3 text-muted">
+                    Repositories with no commits by you in the timeframe are omitted.
+                    Single-repo runs skip the duplicate standup summary block.
+                  </p>
+                  <DocTable
+                    headers={["Situation", "Behavior"]}
+                    rows={routing.map((r) => [r.situation, r.behavior])}
+                  />
+                </ScrollReveal>
+              </section>
+
+              <section id="options" className="scroll-mt-32">
+                <ScrollReveal>
+                  <h2 className="text-2xl font-semibold tracking-tight">Options</h2>
+                  <ul className="mt-8 space-y-4">
+                    {options.map((opt) => (
+                      <li key={opt.flag} className="panel-hover p-4 rounded-2xl border border-transparent hover:border-line hover:bg-bg-elevated/40 transition-all">
+                        <code className="font-mono text-sm text-fg bg-bg-elevated border border-line/50 px-2 py-1 rounded-md">{opt.flag}</code>
+                        <p className="mt-2 text-sm leading-relaxed text-muted">{opt.desc}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </ScrollReveal>
+              </section>
+
+              <section id="requirements" className="scroll-mt-32">
+                <ScrollReveal>
+                  <h2 className="text-2xl font-semibold tracking-tight">Requirements</h2>
+                  <ul className="mt-5 list-disc space-y-2 pl-5 text-muted">
+                    <li>Bash</li>
+                    <li>
+                      Git with{" "}
+                      <code className="font-mono text-xs text-fg/80 bg-bg-elevated border border-line/50 px-1 py-0.5 rounded">user.email</code> or{" "}
+                      <code className="font-mono text-xs text-fg/80 bg-bg-elevated border border-line/50 px-1 py-0.5 rounded">user.name</code>{" "}
+                      configured
                     </li>
-                  ))}
-                </ul>
-              </ScrollReveal>
-            </section>
-
-            <section id="requirements" className="scroll-mt-12">
-              <ScrollReveal>
-                <h2 className="text-2xl font-semibold tracking-tight">Requirements</h2>
-                <ul className="mt-5 list-disc space-y-2 pl-5 text-muted">
-                  <li>Bash</li>
-                  <li>
-                    Git with{" "}
-                    <code className="font-mono text-xs text-fg/80 bg-bg-elevated border border-line/50 px-1 py-0.5 rounded">user.email</code> or{" "}
-                    <code className="font-mono text-xs text-fg/80 bg-bg-elevated border border-line/50 px-1 py-0.5 rounded">user.name</code>{" "}
-                    configured
-                  </li>
-                </ul>
-                <pre className="mt-6 overflow-x-auto rounded-2xl border border-term-border bg-term-bg px-4 py-4 font-mono text-[13px] leading-relaxed text-term-fg sm:text-sm panel-hover shadow-sm">
-                  <span className="text-term-prompt select-none">$ </span>
-                  git config --global user.email &quot;you@example.com&quot;{"\n"}
-                  <span className="text-term-prompt select-none">$ </span>
-                  git config --global user.name &quot;Your Name&quot;
-                </pre>
-                <p className="mt-8 text-sm text-muted">
-                  Prefer reading on GitHub? Source and contributing notes live in the{" "}
-                  <a
-                    href="https://github.com/StackwiseTechnologiesLtd/git-recap"
-                    className="text-accent hover:underline font-medium"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    repository
-                  </a>
-                  .
-                </p>
-              </ScrollReveal>
-            </section>
+                  </ul>
+                  <pre className="mt-6 overflow-x-auto rounded-2xl border border-term-border bg-term-bg px-4 py-4 font-mono text-[13px] leading-relaxed text-term-fg sm:text-sm panel-hover shadow-sm">
+                    <span className="text-term-prompt select-none">$ </span>
+                    git config --global user.email &quot;you@example.com&quot;{"\n"}
+                    <span className="text-term-prompt select-none">$ </span>
+                    git config --global user.name &quot;Your Name&quot;
+                  </pre>
+                  <p className="mt-8 text-sm text-muted">
+                    Prefer reading on GitHub? Source and contributing notes live in the{" "}
+                    <a
+                      href="https://github.com/StackwiseTechnologiesLtd/git-recap"
+                      className="text-accent hover:underline font-medium"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      repository
+                    </a>
+                    .
+                  </p>
+                </ScrollReveal>
+              </section>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
