@@ -134,11 +134,6 @@ export default function DocsPage() {
       <SiteHeader />
 
       <main className="relative pb-12 sm:pb-16 overflow-hidden">
-        {/* Atmospheric Background Orbs */}
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-accent-soft blur-[120px] rounded-full pointer-events-none opacity-60 dark:opacity-40 animate-float" />
-        <div className="absolute top-[800px] -left-[200px] w-[600px] h-[600px] bg-term-magenta/10 blur-[120px] rounded-full pointer-events-none opacity-50 animate-float" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-[1600px] -right-[200px] w-[500px] h-[700px] bg-term-cyan/10 blur-[120px] rounded-full pointer-events-none opacity-40 animate-float" style={{ animationDelay: '4s' }} />
-
         <div className="mx-auto max-w-5xl px-5 pt-28 sm:px-8 sm:pt-32 relative z-10">
           <div className="flex items-center gap-4">
             <div className="shrink-0 animate-logo logo-mark hidden sm:block">
