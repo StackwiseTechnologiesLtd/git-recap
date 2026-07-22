@@ -136,7 +136,7 @@ export default function DocsPage() {
           <p className="font-mono text-[11px] tracking-[0.2em] text-accent uppercase">
             Documentation
           </p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl bg-gradient-to-br from-fg to-muted bg-clip-text text-transparent animate-rise">
             git-recap docs
           </h1>
           <p className="mt-4 text-lg leading-relaxed text-muted">
@@ -149,43 +149,43 @@ export default function DocsPage() {
 
         <nav
           aria-label="Docs sections"
-          className="sticky top-[4.5rem] z-40 mt-8 bg-bg sm:top-[5rem]"
+          className="sticky top-[4.5rem] z-40 mt-8 bg-bg/70 backdrop-blur-md border-b border-line sm:top-[5rem] transition-all duration-300 animate-nav"
         >
           <div className="mx-auto max-w-5xl px-5 sm:px-8 py-2">
             <div className="flex gap-x-5 overflow-x-auto py-3.5 text-sm text-muted [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden border border-line rounded-xl px-2">
               <a
                 href="#install"
-                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg transition-all hover:text-accent hover:bg-accent-soft"
               >
                 Install
               </a>
               <a
                 href="#usage"
-                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg transition-all hover:text-accent hover:bg-accent-soft"
               >
                 Usage
               </a>
               <a
                 href="#timeframe"
-                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg transition-all hover:text-accent hover:bg-accent-soft"
               >
                 Timeframe
               </a>
               <a
                 href="#routing"
-                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg transition-all hover:text-accent hover:bg-accent-soft"
               >
                 Routing
               </a>
               <a
                 href="#options"
-                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg transition-all hover:text-accent hover:bg-accent-soft"
               >
                 Options
               </a>
               <a
                 href="#requirements"
-                className="shrink-0 whitespace-nowrap transition-colors hover:text-accent"
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg transition-all hover:text-accent hover:bg-accent-soft"
               >
                 Requirements
               </a>
@@ -194,19 +194,19 @@ export default function DocsPage() {
         </nav>
 
         <div className="mx-auto max-w-5xl px-5 sm:px-8">
-          <section id="install" className="scroll-mt-40 py-14 sm:scroll-mt-44">
-            <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
+          <section id="install" className="scroll-mt-40 py-14 sm:scroll-mt-44 animate-rise-delay-1">
+            <h2 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-fg to-muted bg-clip-text text-transparent">Installation</h2>
             <p className="mt-3 text-muted">Homebrew (recommended):</p>
-            <div className="mt-5">
+            <div className="mt-5 panel-hover">
               <CopyCommand command={BREW_INSTALL} />
             </div>
             <p className="mt-8 text-sm text-muted">
               Modern Homebrew requires{" "}
-              <code className="font-mono text-xs text-fg/80">brew trust</code> for
+              <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded">brew trust</code> for
               third-party taps. Or install from source — see the{" "}
               <a
                 href="https://github.com/StackwiseTechnologiesLtd/git-recap#from-source"
-                className="text-accent hover:underline"
+                className="text-accent hover:underline accent-underline"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -216,39 +216,39 @@ export default function DocsPage() {
             </p>
           </section>
 
-          <section id="usage" className="scroll-mt-40 py-14 sm:scroll-mt-44">
-            <h2 className="text-2xl font-semibold tracking-tight">Usage</h2>
+          <section id="usage" className="scroll-mt-40 py-14 sm:scroll-mt-44 animate-rise-delay-2">
+            <h2 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-fg to-muted bg-clip-text text-transparent">Usage</h2>
             <p className="mt-3 text-muted">
               Groups commits into Features, Fixes, Docs, Refactors, Tests,
               Performance, Chores, and Other. Conventional prefixes like{" "}
-              <code className="font-mono text-xs text-fg/80">feat:</code> are
+              <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded">feat:</code> are
               stripped; long subjects shorten at word boundaries.
             </p>
-            <div className="mt-8 overflow-hidden rounded-2xl border border-term-border bg-term-bg">
+            <div className="mt-8 overflow-hidden rounded-2xl border border-term-border bg-term-bg shadow-xl shadow-term-bg/20">
               {commands.map((item, i) => (
                 <div
                   key={item.cmd}
-                  className={`flex flex-col gap-1 px-4 py-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 ${i < commands.length - 1 ? "border-b border-term-border" : ""
+                  className={`flex flex-col gap-1 px-4 py-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 hover:bg-term-elevated/80 transition-colors ${i < commands.length - 1 ? "border-b border-term-border/50" : ""
                     }`}
                 >
                   <code className="font-mono text-[13px] text-term-fg sm:text-sm">
                     <span className="text-term-prompt select-none">$ </span>
                     {item.cmd}
                   </code>
-                  <span className="shrink-0 text-sm text-term-muted">{item.note}</span>
+                  <span className="shrink-0 text-sm text-term-muted transition-colors">{item.note}</span>
                 </div>
               ))}
             </div>
           </section>
 
-          <section id="timeframe" className="scroll-mt-40 py-14 sm:scroll-mt-44">
-            <h2 className="text-2xl font-semibold tracking-tight">Timeframe</h2>
+          <section id="timeframe" className="scroll-mt-40 py-14 sm:scroll-mt-44 reveal is-visible">
+            <h2 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-fg to-muted bg-clip-text text-transparent">Timeframe</h2>
             <p className="mt-3 text-muted">
               Values pass through to{" "}
-              <code className="font-mono text-xs text-fg/80">git log --since</code>
+              <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded">git log --since</code>
               , so any Git date expression works.{" "}
-              <code className="font-mono text-xs text-fg/80">--yesterday</code> uses{" "}
-              <code className="font-mono text-xs text-fg/80">
+              <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded">--yesterday</code> uses{" "}
+              <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded">
                 --since &quot;yesterday 00:00&quot; --until &quot;today 00:00&quot;
               </code>
               .
@@ -259,8 +259,8 @@ export default function DocsPage() {
             />
           </section>
 
-          <section id="routing" className="scroll-mt-40 py-14 sm:scroll-mt-44">
-            <h2 className="text-2xl font-semibold tracking-tight">Routing</h2>
+          <section id="routing" className="scroll-mt-40 py-14 sm:scroll-mt-44 reveal is-visible">
+            <h2 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-fg to-muted bg-clip-text text-transparent">Routing</h2>
             <p className="mt-3 text-muted">
               Repositories with no commits by you in the timeframe are omitted.
               Single-repo runs skip the duplicate standup summary block.
@@ -271,30 +271,30 @@ export default function DocsPage() {
             />
           </section>
 
-          <section id="options" className="scroll-mt-40 py-14 sm:scroll-mt-44">
-            <h2 className="text-2xl font-semibold tracking-tight">Options</h2>
-            <ul className="mt-8 space-y-5">
+          <section id="options" className="scroll-mt-40 py-14 sm:scroll-mt-44 reveal is-visible">
+            <h2 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-fg to-muted bg-clip-text text-transparent">Options</h2>
+            <ul className="mt-8 space-y-4">
               {options.map((opt) => (
-                <li key={opt.flag}>
-                  <code className="font-mono text-sm text-accent">{opt.flag}</code>
-                  <p className="mt-1 text-sm leading-relaxed text-muted">{opt.desc}</p>
+                <li key={opt.flag} className="panel-hover p-4 rounded-2xl border border-transparent hover:border-line hover:bg-bg-elevated/40 transition-all">
+                  <code className="font-mono text-sm text-accent bg-accent-soft px-2 py-1 rounded-md">{opt.flag}</code>
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{opt.desc}</p>
                 </li>
               ))}
             </ul>
           </section>
 
-          <section id="requirements" className="scroll-mt-40 py-14 sm:scroll-mt-44">
-            <h2 className="text-2xl font-semibold tracking-tight">Requirements</h2>
+          <section id="requirements" className="scroll-mt-40 py-14 sm:scroll-mt-44 reveal is-visible">
+            <h2 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-fg to-muted bg-clip-text text-transparent">Requirements</h2>
             <ul className="mt-5 list-disc space-y-2 pl-5 text-muted">
               <li>Bash</li>
               <li>
                 Git with{" "}
-                <code className="font-mono text-xs text-fg/80">user.email</code> or{" "}
-                <code className="font-mono text-xs text-fg/80">user.name</code>{" "}
+                <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded">user.email</code> or{" "}
+                <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded">user.name</code>{" "}
                 configured
               </li>
             </ul>
-            <pre className="mt-6 overflow-x-auto rounded-2xl border border-term-border bg-term-bg px-4 py-4 font-mono text-[13px] leading-relaxed text-term-fg sm:text-sm">
+            <pre className="mt-6 overflow-x-auto rounded-2xl border border-term-border bg-term-bg px-4 py-4 font-mono text-[13px] leading-relaxed text-term-fg sm:text-sm panel-hover shadow-xl shadow-term-bg/20">
               <span className="text-term-prompt select-none">$ </span>
               git config --global user.email &quot;you@example.com&quot;{"\n"}
               <span className="text-term-prompt select-none">$ </span>
@@ -329,7 +329,7 @@ function DocTable({
   rows: [string, string][];
 }) {
   return (
-    <div className="mt-8 overflow-hidden rounded-2xl border border-line-strong">
+    <div className="mt-8 overflow-hidden rounded-2xl border border-line shadow-sm">
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-line-strong bg-bg-panel">
@@ -339,9 +339,9 @@ function DocTable({
         </thead>
         <tbody>
           {rows.map(([a, b]) => (
-            <tr key={a} className="border-b border-line last:border-0">
-              <td className="px-4 py-3 align-top font-medium text-fg">{a}</td>
-              <td className="px-4 py-3 align-top font-mono text-[13px] text-muted">
+            <tr key={a} className="border-b border-line last:border-0 hover:bg-bg-elevated/40 transition-colors group">
+              <td className="px-4 py-3 align-top font-medium text-fg group-hover:text-accent transition-colors">{a}</td>
+              <td className="px-4 py-3 align-top font-mono text-[13px] text-muted group-hover:text-fg transition-colors">
                 {b}
               </td>
             </tr>
