@@ -30,7 +30,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
-    <div className="flex flex-1 pt-20 sm:pt-24 overflow-hidden h-full">
+    <div className="flex flex-1 overflow-hidden h-full">
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <div 
