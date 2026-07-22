@@ -1,6 +1,6 @@
 import { CopyCommand } from "@/components/CopyCommand";
 import { SiteHeader } from "@/components/SiteHeader";
-import { DocsSidebar } from "@/components/DocsSidebar";
+import { DocsLayout } from "@/components/DocsLayout";
 import { JsonLd, breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import { ScrollReveal } from "@/components/ScrollReveal";
@@ -144,12 +144,8 @@ export default function DocsPage() {
       
       <SiteHeader />
 
-      <div className="flex flex-1 pt-24 overflow-hidden h-full">
-        <DocsSidebar />
-
-        {/* Main Content Area */}
-        <main className="flex-1 h-full overflow-y-auto relative scroll-smooth">
-          <div className="max-w-4xl mx-auto px-6 py-6 md:px-12 md:py-8">
+      <DocsLayout>
+        <div className="max-w-4xl mx-auto px-6 py-6 md:px-12 md:py-8">
             <ScrollReveal>
               <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
                 Documentation
@@ -322,9 +318,7 @@ export default function DocsPage() {
                 </ScrollReveal>
               </section>
             </div>
-          </div>
-        </main>
-      </div>
+      </DocsLayout>
     </div>
   );
 }

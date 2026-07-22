@@ -1,0 +1,138 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+
+function BookIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+}
+function CommandIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m10 9-3 3 3 3"/><path d="M14 15h4"/></svg>
+}
+function SearchIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+}
+function PanelLeftClose(props: React.SVGProps<SVGSVGElement>) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></svg>
+}
+function PanelLeftOpen(props: React.SVGProps<SVGSVGElement>) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
+}
+function SettingsIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+}
+function ChevronDownIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m6 9 6 6 6-6"/></svg>
+}
+
+export function DocsLayout({ children }: { children: React.ReactNode }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  return (
+    <div className="flex flex-1 pt-20 sm:pt-24 overflow-hidden h-full">
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-bg/80 backdrop-blur-sm z-50 md:hidden" 
+          onClick={() => setIsMobileOpen(false)} 
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside 
+        className={`flex-shrink-0 border-r border-line bg-bg-panel md:bg-bg-panel/30 flex-col h-full overflow-y-auto overflow-x-hidden transition-all duration-300 relative z-50 
+          ${isMobileOpen ? 'fixed inset-y-0 left-0 w-[260px] flex pt-4 shadow-2xl' : 'hidden md:flex'} 
+          ${isCollapsed ? 'md:w-16' : 'md:w-[260px]'}`}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-line/50">
+          {!isCollapsed && (
+            <Link href="/" className="flex items-center gap-2 group min-w-0" onClick={() => setIsMobileOpen(false)}>
+              <span className="font-semibold tracking-tight truncate group-hover:text-accent transition-colors">git-recap</span>
+            </Link>
+          )}
+          <button 
+            onClick={() => {
+              if (window.innerWidth < 768) {
+                setIsMobileOpen(false);
+              } else {
+                setIsCollapsed(!isCollapsed);
+              }
+            }} 
+            className={`p-1.5 rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors ${isCollapsed ? 'mx-auto' : ''}`}
+            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {isCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+          </button>
+        </div>
+
+        {!isCollapsed && (
+          <div className="px-4 py-4">
+            <div className="relative">
+              <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted" />
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                className="w-full bg-bg border border-line rounded-lg py-1.5 pl-9 pr-3 text-sm text-fg outline-none focus:border-accent transition-colors"
+              />
+            </div>
+          </div>
+        )}
+
+        <nav className={`flex-1 px-3 pb-6 flex flex-col gap-1 ${isCollapsed ? 'items-center mt-4' : ''}`}>
+          {!isCollapsed && <div className="px-2 py-1.5 text-[11px] font-semibold text-muted uppercase tracking-wider mt-2 whitespace-nowrap">Introduction</div>}
+          <a href="#install" onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors whitespace-nowrap ${isCollapsed ? 'justify-center w-10 h-10' : ''}`} title={isCollapsed ? "Getting Started" : undefined}>
+            <BookIcon className="h-4 w-4 shrink-0" />
+            {!isCollapsed && <span>Getting Started</span>}
+          </a>
+          <a href="#usage" onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors whitespace-nowrap ${isCollapsed ? 'justify-center w-10 h-10' : ''}`} title={isCollapsed ? "Built-in Modules" : undefined}>
+            <CommandIcon className="h-4 w-4 shrink-0" />
+            {!isCollapsed && <span>Built-in Modules</span>}
+          </a>
+
+          {!isCollapsed && <div className="px-2 py-1.5 text-[11px] font-semibold text-muted uppercase tracking-wider mt-4 whitespace-nowrap">Configuration</div>}
+          <a href="#timeframe" onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors whitespace-nowrap ${isCollapsed ? 'justify-center w-10 h-10' : ''}`} title={isCollapsed ? "Timeframe" : undefined}>
+            <SettingsIcon className="h-4 w-4 shrink-0" />
+            {!isCollapsed && <span>Timeframe</span>}
+          </a>
+          <a href="#routing" onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors whitespace-nowrap ${isCollapsed ? 'justify-center w-10 h-10' : ''}`} title={isCollapsed ? "Routing" : undefined}>
+            <SettingsIcon className="h-4 w-4 shrink-0" />
+            {!isCollapsed && <span>Routing</span>}
+          </a>
+          <a href="#options" onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors whitespace-nowrap ${isCollapsed ? 'justify-center w-10 h-10' : ''}`} title={isCollapsed ? "Options" : undefined}>
+            <SettingsIcon className="h-4 w-4 shrink-0" />
+            {!isCollapsed && <span>Options</span>}
+          </a>
+
+          {!isCollapsed && <div className="px-2 py-1.5 text-[11px] font-semibold text-muted uppercase tracking-wider mt-4 whitespace-nowrap">Reference</div>}
+          <a href="#requirements" onClick={() => setIsMobileOpen(false)} className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors whitespace-nowrap ${isCollapsed ? 'justify-center w-10 h-10' : ''}`} title={isCollapsed ? "Requirements" : undefined}>
+            <SettingsIcon className="h-4 w-4 shrink-0" />
+            {!isCollapsed && <span>Requirements</span>}
+          </a>
+        </nav>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 h-full overflow-y-auto relative scroll-smooth flex flex-col">
+        {/* Mobile Header (Sticky) */}
+        <div className="md:hidden sticky top-0 z-30 flex items-center justify-between bg-bg/90 backdrop-blur-md border-b border-line px-4 py-3">
+          <div className="flex items-center gap-2 text-muted hover:text-fg transition-colors">
+            <span className="text-sm font-medium">Getting Started</span>
+            <ChevronDownIcon className="w-4 h-4" />
+          </div>
+          <button 
+            onClick={() => setIsMobileOpen(true)}
+            className="p-1.5 rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors"
+          >
+            <PanelLeftOpen className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content passed from page.tsx */}
+        <div className="flex-1">
+          {children}
+        </div>
+      </main>
+    </div>
+  );
+}
