@@ -318,6 +318,7 @@ export default function DocsPage() {
                 </ScrollReveal>
               </section>
             </div>
+          </div>
       </DocsLayout>
     </div>
   );
