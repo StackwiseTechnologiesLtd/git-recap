@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 
 function BookIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -30,14 +31,16 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const pathname = usePathname();
 
   const navItems = [
-    { href: "#install", title: "Getting Started", icon: BookIcon, section: "Introduction" },
-    { href: "#usage", title: "Built-in Modules", icon: CommandIcon, section: "Introduction" },
-    { href: "#timeframe", title: "Timeframe", icon: SettingsIcon, section: "Configuration" },
-    { href: "#routing", title: "Routing", icon: SettingsIcon, section: "Configuration" },
-    { href: "#options", title: "Options", icon: SettingsIcon, section: "Configuration" },
-    { href: "#requirements", title: "Requirements", icon: SettingsIcon, section: "Reference" },
+    { href: "/docs", title: "Getting Started", icon: BookIcon, section: "Introduction" },
+    { href: "/docs/modules", title: "Built-in Modules", icon: CommandIcon, section: "Introduction" },
+    { href: "/docs/timeframe", title: "Timeframe", icon: SettingsIcon, section: "Configuration" },
+    { href: "/docs/routing", title: "Routing", icon: SettingsIcon, section: "Configuration" },
+    { href: "/docs/options", title: "Options", icon: SettingsIcon, section: "Configuration" },
+    { href: "/docs/requirements", title: "Requirements", icon: SettingsIcon, section: "Reference" },
   ];
 
   const filteredNav = navItems.filter(item =>
@@ -54,17 +57,22 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
         {!isCollapsed && <div className="px-2 py-1.5 text-[11px] font-semibold text-muted uppercase tracking-wider mt-4 whitespace-nowrap">{sectionName}</div>}
         {items.map((item) => {
           const Icon = item.icon;
+          const isActive = pathname === item.href;
           return (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               onClick={() => setIsMobileOpen(false)}
-              className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors whitespace-nowrap ${isCollapsed ? 'justify-center w-10 h-10 mt-1' : ''}`}
+              className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap ${
+                isActive 
+                  ? 'bg-accent/10 text-accent font-medium' 
+                  : 'hover:bg-bg-elevated text-muted hover:text-fg'
+              } ${isCollapsed ? 'justify-center w-10 h-10 mt-1' : ''}`}
               title={isCollapsed ? item.title : undefined}
             >
               <Icon className="h-4 w-4 shrink-0" />
               {!isCollapsed && <span>{item.title}</span>}
-            </a>
+            </Link>
           );
         })}
       </>
@@ -118,6 +126,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
             <div className="relative">
               <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted" />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
@@ -152,7 +161,15 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
             <span className="font-semibold tracking-tight text-fg transition-colors group-hover:text-accent">git-recap</span>
           </Link>
           <div className="flex items-center gap-4">
-            <SearchIcon className="w-5 h-5 text-muted" />
+            <button 
+              onClick={() => {
+                setIsMobileOpen(true);
+                setTimeout(() => searchInputRef.current?.focus(), 100);
+              }} 
+              className="text-muted hover:text-fg transition-colors"
+            >
+              <SearchIcon className="w-5 h-5" />
+            </button>
             <button onClick={() => setIsMobileOpen(true)} className="text-muted hover:text-fg transition-colors">
               <PanelLeftOpen className="w-5 h-5" />
             </button>
@@ -166,7 +183,9 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
         >
           <div className="flex items-center gap-2 text-muted">
             <div className="w-3.5 h-3.5 rounded-full border-2 border-muted" />
-            <span className="text-sm font-medium">Getting Started</span>
+            <span className="text-sm font-medium">
+              {navItems.find(item => item.href === pathname)?.title || "Getting Started"}
+            </span>
           </div>
         </button>
 
