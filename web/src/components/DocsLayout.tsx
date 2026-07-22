@@ -56,6 +56,16 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const pathname = usePathname();
+  const progressBarRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const scrollHeight = target.scrollHeight - target.clientHeight;
+    const progress = scrollHeight > 0 ? (target.scrollTop / scrollHeight) * 100 : 0;
+    if (progressBarRef.current) {
+      progressBarRef.current.style.width = `${progress}%`;
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -223,7 +233,18 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
         </button>
 
         {/* Content wrapper with rounded top on mobile */}
-        <div className="flex-1 overflow-y-auto bg-bg-panel md:bg-transparent rounded-t-[1.5rem] md:rounded-none relative shadow-sm md:shadow-none border border-line md:border-none border-b-0">
+        <div 
+          className="flex-1 overflow-y-auto bg-bg-panel md:bg-transparent rounded-t-[1.5rem] md:rounded-none relative shadow-sm md:shadow-none border border-line md:border-none border-b-0 scroll-smooth"
+          onScroll={handleScroll}
+        >
+          {/* Reading Progress Bar */}
+          <div className="sticky top-0 left-0 right-0 z-40 h-[2px] md:h-1 bg-transparent">
+            <div 
+              ref={progressBarRef}
+              className="h-full bg-accent w-0 transition-none"
+            />
+          </div>
+
           <div className="min-h-full">
             {children}
           </div>
