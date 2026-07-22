@@ -9,6 +9,29 @@ import { CommandPalette } from "@/components/CommandPalette";
 function BookIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
 }
+function ProgressCircle({ progress }: { progress: number }) {
+  const radius = 6;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" className="transform -rotate-90">
+      <circle cx="8" cy="8" r={radius} fill="transparent" stroke="currentColor" strokeWidth="2" className="text-line" />
+      <circle
+        cx="8"
+        cy="8"
+        r={radius}
+        fill="transparent"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeDasharray={circumference}
+        strokeDashoffset={strokeDashoffset}
+        strokeLinecap="round"
+        className="text-accent transition-all duration-500 ease-out"
+      />
+    </svg>
+  );
+}
 function CommandIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m10 9-3 3 3 3" /><path d="M14 15h4" /></svg>
 }
@@ -184,8 +207,15 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
           onClick={() => setIsMobileOpen(true)}
           className="md:hidden flex items-center justify-between px-5 pb-4 shrink-0 w-full hover:opacity-80 transition-opacity"
         >
-          <div className="flex items-center gap-2 text-muted">
-            <div className="w-3.5 h-3.5 rounded-full border-2 border-muted" />
+          <div className="flex items-center gap-2.5 text-muted">
+            <ProgressCircle 
+              progress={
+                Math.max(
+                  ((navItems.findIndex(item => item.href === pathname) + 1) / navItems.length) * 100,
+                  0
+                )
+              } 
+            />
             <span className="text-sm font-medium">
               {navItems.find(item => item.href === pathname)?.title || "Getting Started"}
             </span>
