@@ -36,6 +36,18 @@ function ProgressCircle({ progress }: { progress: number }) {
 function CommandIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m10 9-3 3 3 3" /><path d="M14 15h4" /></svg>
 }
+function ClockIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+}
+function RouteIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
+}
+function SlidersIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+}
+function TerminalIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>
+}
 function SearchIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
 }
@@ -83,10 +95,10 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: "/docs", title: "Getting Started", icon: BookIcon, section: "Introduction" },
     { href: "/docs/modules", title: "Built-in Modules", icon: CommandIcon, section: "Introduction" },
-    { href: "/docs/timeframe", title: "Timeframe", icon: SettingsIcon, section: "Configuration" },
-    { href: "/docs/routing", title: "Routing", icon: SettingsIcon, section: "Configuration" },
-    { href: "/docs/options", title: "Options", icon: SettingsIcon, section: "Configuration" },
-    { href: "/docs/requirements", title: "Requirements", icon: SettingsIcon, section: "Reference" },
+    { href: "/docs/timeframe", title: "Timeframe", icon: ClockIcon, section: "Configuration" },
+    { href: "/docs/routing", title: "Routing", icon: RouteIcon, section: "Configuration" },
+    { href: "/docs/options", title: "Options", icon: SlidersIcon, section: "Configuration" },
+    { href: "/docs/requirements", title: "Requirements", icon: TerminalIcon, section: "Reference" },
   ];
 
   const renderNavSection = (sectionName: string) => {
