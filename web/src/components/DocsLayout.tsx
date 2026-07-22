@@ -113,24 +113,34 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 h-full overflow-y-auto relative scroll-smooth flex flex-col">
+      <main className="flex-1 h-full flex flex-col relative min-w-0 bg-bg md:bg-transparent">
         {/* Mobile Header (Sticky) */}
-        <div className="md:hidden sticky top-0 z-30 flex items-center justify-between bg-bg/90 backdrop-blur-md border-b border-line px-4 py-3">
-          <div className="flex items-center gap-2 text-muted hover:text-fg transition-colors">
-            <span className="text-sm font-medium">Getting Started</span>
-            <ChevronDownIcon className="w-4 h-4" />
+        <header className="md:hidden flex items-center justify-between px-5 py-4 shrink-0">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="font-semibold tracking-tight text-fg">git-recap</span>
+          </Link>
+          <div className="flex items-center gap-4">
+            <SearchIcon className="w-5 h-5 text-muted" />
+            <button onClick={() => setIsMobileOpen(true)} className="text-muted hover:text-fg transition-colors">
+              <PanelLeftOpen className="w-5 h-5" />
+            </button>
           </div>
-          <button 
-            onClick={() => setIsMobileOpen(true)}
-            className="p-1.5 rounded-md hover:bg-bg-elevated text-muted hover:text-fg transition-colors"
-          >
-            <PanelLeftOpen className="w-5 h-5" />
-          </button>
+        </header>
+
+        {/* Mobile Sub-Navbar */}
+        <div className="md:hidden flex items-center justify-between px-5 pb-4 shrink-0">
+          <div className="flex items-center gap-2 text-muted">
+            <div className="w-3.5 h-3.5 rounded-full border-2 border-muted" />
+            <span className="text-sm font-medium">Getting Started</span>
+          </div>
+          <ChevronDownIcon className="w-4 h-4 text-muted" />
         </div>
 
-        {/* Content passed from page.tsx */}
-        <div className="flex-1">
-          {children}
+        {/* Content wrapper with rounded top on mobile */}
+        <div className="flex-1 overflow-y-auto bg-bg-panel md:bg-transparent rounded-t-[1.5rem] md:rounded-none relative shadow-sm md:shadow-none border border-line md:border-none border-b-0">
+          <div className="min-h-full">
+            {children}
+          </div>
         </div>
       </main>
     </div>

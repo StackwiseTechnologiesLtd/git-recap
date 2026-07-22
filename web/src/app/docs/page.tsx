@@ -1,5 +1,5 @@
 import { CopyCommand } from "@/components/CopyCommand";
-import { SiteHeader } from "@/components/SiteHeader";
+
 import { DocsLayout } from "@/components/DocsLayout";
 import { JsonLd, breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
@@ -141,8 +141,6 @@ export default function DocsPage() {
           { name: "Docs", path: "/docs" },
         ])}
       />
-      
-      <SiteHeader />
 
       <DocsLayout>
         <div className="max-w-4xl mx-auto px-6 py-6 md:px-12 md:py-8">
