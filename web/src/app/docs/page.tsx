@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 const BREW_INSTALL = "brew tap StackwiseTechnologiesLtd/tools && brew trust StackwiseTechnologiesLtd/tools && brew install git-recap";
+const NATIVE_RUN = "git-recap --today";
 
 function BookIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
@@ -28,54 +29,38 @@ export default function DocsPage() {
     <div className="pb-20">
       <ScrollReveal>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Documentation
+          Getting Started
         </h1>
-        <p className="mt-4 text-lg text-muted">
-          Everything you need to use git-recap and build clean standup summaries.
+        <p className="mt-4 text-lg text-muted leading-relaxed">
+          Welcome to git-recap! This documentation covers everything you need to start generating clean, categorized standup summaries from your Git history in seconds.
         </p>
       </ScrollReveal>
 
-      {/* Cards Grid */}
-      <ScrollReveal delay={100}>
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link href="/docs" className="md:col-span-3 panel-hover p-6 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
-            <BookIcon className="h-6 w-6 text-muted group-hover:text-fg transition-colors" />
-            <h3 className="text-lg font-medium text-fg">Getting Started</h3>
-            <p className="text-sm text-muted">Download, install, and set up git-recap on your machine in two minutes.</p>
-          </Link>
-          
-          <Link href="/docs/modules" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
-            <GridIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
-            <h3 className="text-md font-medium text-fg">Built-in Modules</h3>
-            <p className="text-sm text-muted">See how commits are categorized automatically.</p>
-          </Link>
+      {/* Why git-recap */}
+      <div className="mt-16">
+        <ScrollReveal>
+          <h2 className="text-2xl font-semibold tracking-tight">Why git-recap?</h2>
+          <p className="mt-4 text-muted leading-relaxed">
+            Writing your daily standup shouldn't be a chore. Manually sifting through `git log`, trying to remember what you worked on, and formatting it for Slack or Notion is tedious.
+          </p>
+          <p className="mt-4 text-muted leading-relaxed">
+            <strong className="text-fg font-medium">git-recap</strong> automates this process by instantly scanning your repositories, intelligently grouping your commits into categories (like Features, Fixes, or Docs), and outputting a perfectly formatted summary. 
+          </p>
+        </ScrollReveal>
+      </div>
 
-          <Link href="/docs/options" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
-            <CodeIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
-            <h3 className="text-md font-medium text-fg">Configuration</h3>
-            <p className="text-sm text-muted">Learn to pass options, flags, and arguments.</p>
-          </Link>
-
-          <Link href="/docs/requirements" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
-            <CommandIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
-            <h3 className="text-md font-medium text-fg">API Reference</h3>
-            <p className="text-sm text-muted">Every available flag typed out and documented.</p>
-          </Link>
-        </div>
-      </ScrollReveal>
-
-      {/* Documentation Sections */}
-      <div className="mt-20">
+      {/* Installation */}
+      <div className="mt-16">
         <ScrollReveal>
           <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
-          <p className="mt-3 text-muted">Homebrew (recommended):</p>
+          <p className="mt-3 text-muted">The easiest way to install git-recap on macOS or Linux is via Homebrew:</p>
           <div className="mt-5 panel-hover">
             <CopyCommand command={BREW_INSTALL} />
           </div>
-          <p className="mt-8 text-sm text-muted">
-            Modern Homebrew requires{" "}
+          <p className="mt-6 text-sm text-muted">
+            <strong className="text-fg">Note:</strong> Modern Homebrew requires{" "}
             <code className="font-mono text-xs text-fg/80 bg-bg-elevated px-1 py-0.5 rounded border border-line/50">brew trust</code> for
-            third-party taps. Or install from source — see the{" "}
+            third-party taps. If you prefer to install from source using Rust's cargo, see the{" "}
             <a
               href="https://github.com/StackwiseTechnologiesLtd/git-recap#from-source"
               className="text-accent hover:underline font-medium"
@@ -88,6 +73,54 @@ export default function DocsPage() {
           </p>
         </ScrollReveal>
       </div>
+
+      {/* Quick Start */}
+      <div className="mt-16">
+        <ScrollReveal>
+          <h2 className="text-2xl font-semibold tracking-tight">Quick Start</h2>
+          <p className="mt-3 text-muted">
+            Once installed, navigate to any Git repository on your machine and run:
+          </p>
+          <div className="mt-5 panel-hover">
+            <CopyCommand command={NATIVE_RUN} />
+          </div>
+          <p className="mt-6 text-muted">
+            This will scan your repository for commits made since midnight and output a categorized summary. 
+            If you want to scan multiple repositories at once, you can run the command from a parent directory and it will automatically find all immediate sub-directories containing a `.git` folder!
+          </p>
+        </ScrollReveal>
+      </div>
+
+      {/* Next Steps Grid */}
+      <ScrollReveal delay={100}>
+        <h2 className="mt-16 text-2xl font-semibold tracking-tight">Explore the Docs</h2>
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link href="/docs/modules" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
+            <GridIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
+            <h3 className="text-md font-medium text-fg">Built-in Modules</h3>
+            <p className="text-sm text-muted leading-relaxed">See how commits are categorized automatically and how conventional commits are stripped.</p>
+          </Link>
+
+          <Link href="/docs/timeframe" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
+            <BookIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
+            <h3 className="text-md font-medium text-fg">Timeframe Handling</h3>
+            <p className="text-sm text-muted leading-relaxed">Learn how to pass custom dates, use shortcuts like --yesterday, or use environment variables.</p>
+          </Link>
+
+          <Link href="/docs/options" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
+            <CodeIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
+            <h3 className="text-md font-medium text-fg">API Reference</h3>
+            <p className="text-sm text-muted leading-relaxed">Read about all available CLI options, flags, and arguments for complete configuration.</p>
+          </Link>
+
+          <Link href="/docs/requirements" className="panel-hover p-5 rounded-2xl border border-line bg-bg-panel/40 flex flex-col gap-3 group transition-colors hover:border-line-strong hover:bg-bg-panel">
+            <CommandIcon className="h-5 w-5 text-muted group-hover:text-fg transition-colors" />
+            <h3 className="text-md font-medium text-fg">Requirements</h3>
+            <p className="text-sm text-muted leading-relaxed">Ensure your system is configured correctly to get the most accurate commit author matching.</p>
+          </Link>
+        </div>
+      </ScrollReveal>
+
     </div>
   );
 }
